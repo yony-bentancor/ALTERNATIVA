@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Especialistas', sub: p.total + ' fichas', acciones: '<a class="btn btn--primary btn--sm" href="/admin/especialistas/nuevo">' + icono('plus', { tam: 16 }) + ' Nueva ficha</a>' }) %>
+<nav class="chips" style="margin-bottom:12px"><a class="chip<%= !query.estado ? ' is-active' : '' %>" href="/admin/especialistas">Todas</a><% Object.entries(ESTADOS_ESPECIALISTA).forEach(([k, t]) => { %><a class="chip<%= query.estado === k ? ' is-active' : '' %>" href="?estado=<%= k %>"><%= t %> (<%= conteo[k] || 0 %>)</a><% }) %></nav>
+<form class="toolbar">
+  <% if (query.estado) { %><input type="hidden" name="estado" value="<%= query.estado %>"><% } %>
+  <div class="field"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="Buscar por nombre" aria-label="Buscar"></div>
+  <div class="field"><select name="verificacion" aria-label="Verificación"><option value="">Identidad: todas</option><% [['ninguna', 'Sin verificar'], ['pendiente', 'Pendiente'], ['verificada', 'Verificada'], ['rechazada', 'Rechazada']].forEach(([k, t]) => { %><option value="<%= k %>"<%= query.verificacion === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <div class="field"><select name="reclamo" aria-label="Reclamo"><option value="">Dueño: todos</option><% [['propio', 'Alta propia'], ['sin_reclamar', 'Sin reclamar'], ['invitado', 'Invitado'], ['reclamado', 'Reclamado']].forEach(([k, t]) => { %><option value="<%= k %>"<%= query.reclamo === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay fichas con esos filtros', ic: 'users' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Especialista</th><th>Categorías</th><th>Zona</th><th>Estado</th><th>Identidad</th><th class="num">Reputación</th><th>Plan</th></tr></thead>
+  <tbody><% p.items.forEach(e => { const v = (e.verificacion || {}).estado || 'ninguna'; %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><% if (e.avatar) { %><img class="avatar avatar--sm" src="<%= e.avatar %>" alt=""><% } else { %><span class="avatar avatar--sm avatar--initial"><%= e.nombre[0] %></span><% } %><span><a href="/admin/especialistas/<%= e.id %>"><b><%= e.nombre %></b></a><% if (e.reclamo && ['sin_reclamar', 'invitado'].includes(e.reclamo.estado)) { %> <%- include('../partials/pill', { texto: e.reclamo.estado === 'invitado' ? 'Invitado' : 'Sin reclamar', tono: 'info' }) %><% } %><% if ((e.cambiosPendientes || []).length) { %> <%- include('../partials/pill', { texto: 'Cambios', tono: 'warn' }) %><% } %><br><span class="small muted">/<%= e.slug %></span></span></div></td>
+    <td class="small"><%= (e.categorias || []).map(id => categorias.get(id)?.nombre).filter(Boolean).join(', ') %></td>
+    <td class="small"><%= [e.ubicacion?.barrio, e.ubicacion?.departamento].filter(Boolean).join(', ') %></td>
+    <td><%- include('../partials/pill', { texto: ESTADOS_ESPECIALISTA[e.estado], tono: { activo: 'ok', en_revision: 'warn', suspendido: 'danger' }[e.estado] }) %></td>
+    <td><%- include('../partials/pill', { texto: { ninguna: 'Sin verificar', pendiente: 'Pendiente', verificada: 'Verificada', rechazada: 'Rechazada' }[v], tono: { verificada: 'ok', pendiente: 'warn', rechazada: 'danger' }[v] }) %></td>
+    <td class="num"><%= e.stats && e.stats.resenas ? '★ ' + fRating(e.stats.rating) + ' (' + e.stats.resenas + ')' : '—' %></td>
+    <td class="small"><%= e.plan === 'profesional' ? 'Profesional' : 'Gratis' %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<% } %>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

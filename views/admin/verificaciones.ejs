@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Verificaciones', sub: 'Identidad y certificaciones. Los documentos son privados: cada apertura queda registrada.' }) %>
+<%- include('../partials/pestanias', { items: [['pendiente', '?estado=pendiente', 'Pendientes'], ['aprobada', '?estado=aprobada', 'Aprobadas'], ['rechazada', '?estado=rechazada', 'Rechazadas']], actual: estado }) %>
+<% if (!solicitudes.length) { %><%- include('../partials/vacio', { t: 'No hay solicitudes ' + (estado === 'pendiente' ? 'pendientes' : estado + 's'), ic: 'shield' }) %><% } %>
+<div class="stack">
+<% solicitudes.forEach(v => { const e = esp.get(v.especialistaId); const u = usuarios.get(v.usuarioId); %>
+  <article class="panel">
+    <div class="row row--between"><h3 style="margin:0"><a href="/admin/especialistas/<%= v.especialistaId %>"><%= e ? e.nombre : 'Especialista' %></a> <%- include('../partials/pill', { texto: v.tipo === 'reclamo' ? 'Reclamo de perfil' : 'Identidad', tono: 'info' }) %></h3><span class="small muted"><%= fFechaHora(v.creado) %></span></div>
+    <p class="small">Cuenta: <%= u ? u.nombre + ' · ' + u.email : '—' %><% if (v.documentoUltimos4) { %> · Documento terminado en <b><%= v.documentoUltimos4 %></b><% } %></p>
+    <% if (v.notas) { %><p class="small muted"><%= v.notas %></p><% } %>
+    <div class="row"><% (v.documentos || []).forEach((id, i) => { const d = docs.get(id); %><a class="btn btn--ghost btn--sm" href="/admin/documentos/<%= id %>" target="_blank" rel="noopener"><%- icono('file', { tam: 16 }) %> <%= d ? (d.mime === 'application/pdf' ? 'PDF' : 'Imagen') : 'Documento' %> <%= i + 1 %></a><% }) %><% if (!(v.documentos || []).length) { %><span class="small muted">Sin documentos adjuntos (pedirle que los suba desde su panel).</span><% } %></div>
+    <% if (v.estado === 'pendiente') { %>
+    <form method="post" action="/admin/verificaciones/<%= v.id %>" class="row" style="margin-top:10px"><%- include('../partials/csrf') %>
+      <input name="nota" placeholder="Nota (obligatoria para rechazar)" maxlength="300" style="flex:1;min-width:200px" aria-label="Nota">
+      <button class="btn btn--primary btn--sm" name="decision" value="aprobar" type="submit">Aprobar</button>
+      <button class="btn btn--ghost btn--sm" name="decision" value="rechazar" type="submit">Rechazar</button>
+    </form>
+    <% } else if (v.revision) { %><p class="small muted">Resuelta el <%= fFecha(v.revision.fecha) %><%= v.revision.nota ? ': ' + v.revision.nota : '' %></p><% } %>
+  </article>
+<% }) %>
+</div>
+<section class="panel" id="certificaciones" style="margin-top:16px"><h2>Certificaciones para verificar (<%= certs.length %>)</h2>
+  <% if (!certs.length) { %><p class="muted">No hay certificaciones pendientes.</p><% } %>
+  <ul class="list"><% certs.forEach(c => { %><li>
+    <div class="row row--between"><span><b><%= c.titulo %></b> · <a href="/admin/especialistas/<%= c.especialistaId %>"><%= esp.get(c.especialistaId)?.nombre %></a><br><span class="small muted"><%= [c.institucion, c.anio].filter(Boolean).join(' · ') %></span></span><% if (c.documentoId) { %><a class="btn btn--ghost btn--sm" href="/admin/documentos/<%= c.documentoId %>" target="_blank"><%- icono('file', { tam: 16 }) %> Documento</a><% } %></div>
+    <form method="post" action="/admin/certificaciones/<%= c.id %>" class="row" style="margin-top:8px"><%- include('../partials/csrf') %><input name="nota" placeholder="Nota" maxlength="300" style="flex:1;min-width:200px" aria-label="Nota"><button class="btn btn--primary btn--sm" name="decision" value="aprobar" type="submit">Verificar</button><button class="btn btn--ghost btn--sm" name="decision" value="rechazar" type="submit">No verificar</button></form>
+  </li><% }) %></ul>
+</section>
+<%- include('../partials/pie') %>

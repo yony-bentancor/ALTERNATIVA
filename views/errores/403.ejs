@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<section class="errorpage">
+  <p class="errorpage__code">403</p>
+  <h1>Sin permiso</h1>
+  <p class="muted"><%= typeof mensaje !== 'undefined' && mensaje ? mensaje : 'No tenés permiso para ver esta página. Si creés que es un error, ingresá con otra cuenta o escribinos.' %></p>
+  <div class="btnbar" style="justify-content:center"><a class="btn btn--primary" href="/">Ir al inicio</a><a class="btn btn--ghost" href="/buscar">Buscar servicios</a></div>
+</section>
+<%- include('../partials/pie') %>

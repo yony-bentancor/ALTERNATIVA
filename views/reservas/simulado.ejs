@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <div class="panel stack" style="border:2px dashed var(--lav)">
+    <span class="rol-tag">Pasarela de prueba</span>
+    <h1 style="margin:0">Pago simulado</h1>
+    <p class="muted small" style="margin:0">Esta pantalla reemplaza a Mercado Pago en modo demostración (PAYMENT_PROVIDER=simulado). No se mueve dinero real. En producción se configura Mercado Pago.</p>
+    <dl class="dl">
+      <div><dt>Reserva</dt><dd><%= r.codigo %> · <%= r.foto.servicio %></dd></div>
+      <div><dt>Especialista</dt><dd><%= r.foto.especialista %></dd></div>
+      <div><dt>Total</dt><dd><b><%= pesos(pago.monto) %></b></dd></div>
+      <div><dt>Reparto (split)</dt><dd>Especialista <%= pesos(pago.montoEspecialista) %> · Alternativa <%= pesos(pago.comisionMarketplace) %></dd></div>
+      <div><dt>Tarjeta de prueba</dt><dd>VISA 4509 9535 6623 3704 · 11/30 · 123</dd></div>
+    </dl>
+    <form method="post" action="/pago/simulado/<%= pago.id %>" class="btnbar"><%- include('../partials/csrf') %>
+      <button class="btn btn--primary btn--lg" name="resultado" value="aprobar" type="submit">Aprobar pago</button>
+      <button class="btn btn--danger" name="resultado" value="rechazar" type="submit">Rechazar</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/pie') %>

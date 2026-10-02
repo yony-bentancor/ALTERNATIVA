@@ -1,0 +1,9 @@
+<%- include('../partials/head') %>
+<article class="prose">
+  <h1><%= pagina.titulo %></h1>
+  <% if (pagina.resumen) { %><p class="muted" style="font-size:1.1rem"><%= pagina.resumen %></p><% } %>
+  <%- markdown(pagina.cuerpo) %>
+</article>
+<% if (slug === 'como-funciona') { %><div class="btnbar"><a class="btn btn--primary" href="/buscar">Buscar un servicio</a><a class="btn btn--ghost" href="/ofrecer">Soy especialista</a></div><% } %>
+<% if (slug === 'sobre-alternativa') { %><div class="btnbar"><a class="btn btn--primary" href="/contacto">Escribinos</a></div><% } %>
+<%- include('../partials/pie') %>

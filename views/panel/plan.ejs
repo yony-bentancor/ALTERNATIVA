@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<% const pro = e.plan === 'profesional'; %>
+<%- include('../partials/encabezado', { t: 'Plan Profesional', sub: pro ? 'Tu plan está activo' + (e.planVence ? ' hasta el ' + fFecha(e.planVence) : '') : 'Herramientas extra para crecer' }) %>
+<div class="plan-grid">
+  <article class="plan-card<%= !pro ? ' plan-card--on' : '' %>">
+    <h2>Gratis</h2><p class="plan-card__price">$ 0</p><p class="small muted">Pagás solo la tarifa por reserva concretada.</p>
+    <ul class="small"><li>Ficha pública con fotos, mapa y reseñas</li><li>Agenda y reservas en línea</li><li>Mensajes con clientes</li><li>Hasta <%= cfg.multimedia.maxFotos || 12 %> fotos</li><li>Estadísticas básicas</li></ul>
+    <% if (!pro) { %><p><span class="pill pill--ok">Tu plan actual</span></p><% } %>
+  </article>
+  <article class="plan-card<%= pro ? ' plan-card--on' : '' %>">
+    <h2>Profesional</h2><p class="plan-card__price">$ 690 <span class="small muted">/ mes</span></p><p class="small muted">Precio de referencia de la demo.</p>
+    <ul class="small"><li>Video de presentación en tu ficha</li><li>Más fotos por servicio</li><li>Estadísticas completas y exportación</li><li>Prioridad en soporte</li><li>Un destacado de una semana por mes</li><li>Diseños de ficha adicionales</li></ul>
+    <% if (pro) { %><p><span class="pill pill--ok">Tu plan actual</span></p><% } else { %>
+    <form method="post" action="/panel/plan" class="stack" style="margin-top:12px"><%- include('../partials/csrf') %>
+      <div class="field"><label for="pl-n">¿Algo que quieras contarnos?</label><textarea id="pl-n" name="notas" rows="2" maxlength="1000"></textarea></div>
+      <button class="btn btn--primary" type="submit">Quiero el Plan Profesional</button>
+    </form><% } %>
+  </article>
+</div>
+<p class="small muted" style="margin-top:16px">El plan no cambia tu posición por reputación: el orden de búsqueda depende de reseñas, relevancia y disponibilidad. La exposición paga siempre se marca como “Patrocinado”.</p>
+<%- include('../partials/pie') %>

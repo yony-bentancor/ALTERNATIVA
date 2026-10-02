@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<ol class="steps" aria-label="Pasos"><li class="is-done"></li><li></li><li></li></ol>
+<div class="layout-aside">
+  <div data-booking data-service="<%= s.id %>" data-today="<%= hoy %>" data-selected="<%= seleccionada %>"<%- volverDe ? ` data-extra="&volverDe=${volverDe}"` : '' %>>
+    <%- include('../partials/encabezado', { t: 'Elegí día y hora', sub: s.titulo + ' · ' + duracion(s.duracion), volver: '/servicios/' + e.slug + '/' + s.slug }) %>
+    <% if (mods.length > 1) { %>
+    <fieldset class="field"><legend>Modalidad</legend>
+      <div class="modality-pick">
+        <% mods.forEach(m => { %><label><input type="radio" name="modalidad" value="<%= m %>"<%= m === modalidad ? ' checked' : '' %>><span><%- icono(MODALIDADES[m].icono, { tam: 18 }) %> <b><%= MODALIDADES[m].texto %></b><% if (m === 'domicilio' && s.recargoDomicilio) { %> <span class="muted small">(+<%= pesos(s.recargoDomicilio) %>)</span><% } %></span></label><% }) %>
+      </div>
+    </fieldset>
+    <% } else { %><input type="hidden" name="modalidad" value="<%= modalidad %>"><p class="chip"><%- icono(MODALIDADES[modalidad].icono, { tam: 14 }) %><%= MODALIDADES[modalidad].texto %></p><% } %>
+    <div class="panel cal" data-cal><p class="slots-empty">Cargando agenda…</p></div>
+    <h2 class="small" style="margin-top:18px" data-day-title>Horarios</h2>
+    <div data-slots><noscript><p>Necesitás JavaScript para ver el calendario. También podés escribirle al especialista.</p></noscript></div>
+  </div>
+  <aside>
+    <div class="panel stack">
+      <div class="card__who"><% if (e.avatar) { %><img class="avatar avatar--md" src="<%= e.avatar %>" alt=""><% } %><span><b style="color:var(--text)"><%= e.nombre %></b><br><span class="small"><%= [e.ubicacion?.barrio, e.ubicacion?.ciudad].filter(Boolean).join(', ') %></span></span></div>
+      <% if (s.fotos && s.fotos[0]) { %><div class="svc-photo" style="margin:0"><img src="<%= s.fotos[0] %>" alt=""></div><% } %>
+      <p class="small muted" style="margin:0">Mostramos solo horarios realmente libres. Al confirmar, volvemos a verificarlo para evitar reservas superpuestas.</p>
+    </div>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

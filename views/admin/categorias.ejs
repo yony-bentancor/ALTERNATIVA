@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Categorías', sub: lista.length + ' categorías', acciones: '<a class="btn btn--primary btn--sm" href="/admin/categorias/nueva">' + icono('plus', { tam: 16 }) + ' Nueva categoría</a>' }) %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Categoría</th><th>Enlace</th><th>Estado</th><th class="num">Servicios</th><th class="num">Orden</th><th></th></tr></thead>
+  <tbody><% lista.forEach(c => { %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><% if (c.imagen) { %><img class="mini-thumb" src="<%= c.imagen %>" alt=""><% } else { %><span class="avatar avatar--sm" style="background:<%= c.color %>;color:#fff;display:inline-flex;align-items:center;justify-content:center"><%- icono(c.icono || 'leaf', { tam: 16 }) %></span><% } %><span><b><%= c.nombre %></b><% if (c.destacada) { %> <%- include('../partials/pill', { texto: 'Destacada', tono: 'brand' }) %><% } %><% if (c.estado === 'pendiente' && c.propuestaPor) { %><br><span class="small muted">Propuesta por <%= usuarios.get(c.propuestaPor)?.nombre || 'un especialista' %></span><% } %></span></div></td>
+    <td class="small"><a href="/<%= c.slug %>" target="_blank">/<%= c.slug %></a></td>
+    <td><%- include('../partials/pill', { texto: { activa: 'Activa', pendiente: 'Pendiente', oculta: 'Oculta' }[c.estado], tono: { activa: 'ok', pendiente: 'warn' }[c.estado] }) %></td>
+    <td class="num"><%= cuenta[c.id] || 0 %></td><td class="num"><%= c.orden || 0 %></td>
+    <td><a class="btn btn--ghost btn--sm" href="/admin/categorias/<%= c.id %>">Editar</a></td>
+  </tr><% }) %></tbody>
+</table></div>
+<%- include('../partials/pie') %>

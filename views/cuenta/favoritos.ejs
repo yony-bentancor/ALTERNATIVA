@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Favoritos' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'favoritos' }) %>
+<% if (!servicios.length && !especialistas.length) { %><%- include('../partials/vacio', { t: 'Todavía no guardaste favoritos', texto: 'Tocá el corazón en un servicio para guardarlo acá.', accion: 'Explorar', href: '/buscar', ic: 'heart' }) %><% } %>
+<% if (especialistas.length) { %>
+<section class="section"><h2>Especialistas</h2>
+  <ul class="list panel"><% especialistas.forEach(e => { %><li><a class="list-row" href="/especialistas/<%= e.slug %>"><% if (e.avatar) { %><img class="avatar avatar--md" src="<%= e.avatar %>" alt=""><% } %><div class="list-row__main"><p class="list-row__title"><%= e.nombre %></p><p class="list-row__sub"><%= e.titular %></p></div><%- icono('chevronRight') %></a></li><% }) %></ul>
+</section>
+<% } %>
+<% if (servicios.length) { %><section class="section"><h2>Servicios</h2><div class="cards"><% servicios.forEach(t => { %><%- include('../partials/tarjeta-foto', { t }) %><% }) %></div></section><% } %>
+<%- include('../partials/pie') %>

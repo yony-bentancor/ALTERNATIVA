@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="pagehead">
+  <a class="pagehead__back" href="/panel/clientes" aria-label="Volver"><%- icono('arrowLeft') %></a>
+  <% if (cliente && cliente.avatar) { %><img class="avatar avatar--lg" src="<%= cliente.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= (cliente && cliente.nombre || '?')[0] %></span><% } %>
+  <div class="pagehead__text"><h1><%= cliente ? cliente.nombre : 'Cliente' %></h1><p class="muted">Cliente desde <%= fCorta(lista[lista.length - 1].inicio) %> · <%= lista.length %> reservas</p></div>
+  <div class="pagehead__actions">
+    <a class="btn btn--ghost btn--sm" href="<%= conversacion ? '/panel/mensajes/' + conversacion.id : '/panel/clientes/' + cliente.id + '/mensaje' %>"><%- icono('chat', { tam: 16 }) %> Mensaje</a>
+    <% if (mostrarTelefono && cliente.telefono) { %><a class="btn btn--wa btn--sm" href="<%= enlaceWhatsapp(cliente.telefono, 'Hola ' + cliente.nombre.split(' ')[0] + ', te escribo desde Alternativa') %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 16 }) %> WhatsApp</a><% } %>
+  </div>
+</div>
+<div class="grid-2" style="align-items:start">
+  <section class="panel"><h2>Reservas</h2><div class="stack"><% lista.forEach(r => { %><%- include('../partials/reserva-item', { r, base: '/panel/reservas', quien: 'usuario' }) %><% }) %></div></section>
+  <div class="stack-lg">
+    <section class="panel"><h2>Contacto</h2><dl class="dl"><div><dt>Celular</dt><dd><%= mostrarTelefono && cliente.telefono ? cliente.telefono : 'No compartido' %></dd></div><div><dt>Zona</dt><dd><%= [cliente?.ubicacion?.barrio, cliente?.ubicacion?.ciudad].filter(Boolean).join(', ') || '—' %></dd></div></dl></section>
+    <section class="panel"><h2>Notas de sesiones</h2><% lista.filter(r => r.notasEspecialista).forEach(r => { %><p class="small"><b><%= fCorta(r.inicio) %>:</b> <%= r.notasEspecialista %></p><% }) %><% if (!lista.some(r => r.notasEspecialista)) { %><p class="muted small">Sin notas. Podés agregarlas en cada reserva.</p><% } %></section>
+    <section class="panel"><h2>Sus reseñas</h2><% resenas.forEach(rv => { %><article class="review"><div class="review__head"><span><%= servMap.get(rv.servicioId)?.titulo %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div><% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %></article><% }) %><% if (!resenas.length) { %><p class="muted small">Todavía no dejó reseñas.</p><% } %></section>
+  </div>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,77 @@
+<%- include('../partials/head') %>
+<% const u = e.ubicacion || {}; const dist = (s.rating && s.rating.distribucion) || [0,0,0,0,0]; const maxD = Math.max(1, ...dist); %>
+<nav class="breadcrumb" aria-label="Ruta"><a href="/">Inicio</a><span>›</span><% if (categoria) { %><a href="/<%= categoria.slug %>"><%= categoria.nombre %></a><span>›</span><% } %><a href="/especialistas/<%= e.slug %>"><%= e.nombre %></a></nav>
+<% if (vistaPrevia || s.estado !== 'activo') { %><div class="flash flash--warn" style="margin-bottom:12px"><%- icono('eye', { tam: 18 }) %><span>Vista previa: este servicio no está publicado.</span></div><% } %>
+
+<div class="layout-aside">
+  <div>
+    <% if (s.fotos && s.fotos[0]) { %><div class="svc-photo"><img src="<%= s.fotos[0] %>" alt="<%= s.titulo %>"></div><% } %>
+    <h1 style="margin-bottom:4px"><%= s.titulo %></h1>
+    <a href="/especialistas/<%= e.slug %>" class="card__who" style="text-decoration:none;margin-bottom:10px">
+      <% if (e.avatar) { %><img class="avatar avatar--md" src="<%= e.avatar %>" alt=""><% } %>
+      <span><b style="color:var(--text)"><%= e.nombre %></b><% if (e.verificacion && e.verificacion.estado === 'verificada') { %> <span class="badge badge--verified"><%- icono('shield', { tam: 13 }) %>Verificada</span><% } %><br><span class="small"><%= e.titular %></span></span>
+    </a>
+    <div class="profile-facts">
+      <%- include('../partials/rating', { r: s.rating }) %>
+      <span><%- icono('clock', { tam: 16 }) %><%= duracion(s.duracion) %></span>
+      <% (s.modalidades || []).forEach(m => { %><span><%- icono(MODALIDADES[m].icono, { tam: 16 }) %><%= MODALIDADES[m].texto %></span><% }) %>
+    </div>
+    <% promos.forEach(pr => { %><p class="intent-note" style="margin-top:12px"><%- icono('tag', { tam: 16 }) %> <b><%= pr.titulo %></b> · <%= pr.descuento %>% de descuento<%= pr.publico === 'nuevos' ? ' para quienes reservan por primera vez' : '' %>. Se aplica al reservar.</p><% }) %>
+
+    <section class="section prose"><h2>Qué es</h2><%- markdown(s.descripcion || s.resumen) %></section>
+    <% if ((s.incluye || []).length) { %><section class="section"><h2>Incluye</h2><ul class="checklist"><% s.incluye.forEach(x => { %><li><span><%- icono('check', { tam: 18 }) %><%= x %></span></li><% }) %></ul></section><% } %>
+    <% if (s.preparacion) { %><section class="section"><h2>Cómo prepararte</h2><p><%= s.preparacion %></p></section><% } %>
+    <% if ((s.modalidades || []).includes('domicilio') && s.recargoDomicilio) { %><p class="muted-box">A domicilio se suma un recargo de <%= pesos(s.recargoDomicilio) %> (radio de <%= u.radioKm || 10 %> km desde <%= u.barrio || u.ciudad %>).</p><% } %>
+
+    <% if ((s.modalidades || []).includes('presencial') && (u.barrio || u.ciudad)) { %>
+    <section class="section"><h2>Dónde</h2>
+      <p class="muted small"><%= [u.barrio, u.ciudad].filter(Boolean).join(', ') %>. La dirección exacta te llega al confirmar la reserva.</p>
+      <%- include('../partials/mapa', { lugar: { q: [u.barrio, u.ciudad, u.departamento, 'Uruguay'].filter(Boolean).join(', ') }, texto: [u.barrio, u.ciudad].filter(Boolean).join(', '), exacto: false }) %>
+    </section>
+    <% } %>
+
+    <section class="section" id="resenas">
+      <div class="section__head"><h2>Reseñas de este servicio</h2><% if (totalResenas > resenas.length) { %><a href="/servicios/<%= e.slug %>/<%= s.slug %>/resenas">Ver las <%= totalResenas %></a><% } %></div>
+      <% if (s.rating && s.rating.cant) { %>
+      <div class="grid-2" style="align-items:center;margin-bottom:12px">
+        <div><span class="big-rating"><%= fRating(s.rating.prom) %></span> <%- include('../partials/estrellas', { n: Math.round(s.rating.prom), tam: 18 }) %><p class="muted small"><%= s.rating.cant %> reseñas verificadas</p></div>
+        <div class="dist"><% [5,4,3,2,1].forEach(n => { %><div class="dist__row"><span><%= n %>★</span><span class="dist__bar"><span style="width:<%= Math.round(dist[n-1] / maxD * 100) %>%"></span></span><span class="muted"><%= dist[n-1] %></span></div><% }) %></div>
+      </div>
+      <% } %>
+      <% if (!resenas.length) { %><p class="muted">Todavía no hay reseñas para este servicio.</p><% } %>
+      <% resenas.forEach(rv => { %>
+      <article class="review">
+        <div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div>
+        <div class="review__meta"><%= fCorta(rv.creado) %> · <span class="review__verified"><%- icono('checkCircle', { tam: 13 }) %>Sesión realizada</span></div>
+        <% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %>
+        <% if (rv.respuesta) { %><div class="review__reply"><b>Respuesta:</b> <%= rv.respuesta.texto %></div><% } %>
+      </article>
+      <% }) %>
+    </section>
+
+    <% if (otros.length) { %>
+    <section class="section"><h2>Otros servicios de <%= e.nombre.split(' ')[0] %></h2><div class="results"><% otros.forEach(t => { %><%- include('../partials/tarjeta', { t }) %><% }) %></div></section>
+    <% } %>
+  </div>
+
+  <aside>
+    <div class="panel stack">
+      <div class="summary">
+        <% if (cfg.comision.mostrarPrecio === 'desglose' && d.tarifa) { %>
+        <div class="summary__row"><span>Servicio</span><span><%= pesos(d.subtotal) %></span></div>
+        <div class="summary__row"><span><%= cfg.comision.etiqueta %></span><span><%= pesos(d.total - d.subtotal) %></span></div>
+        <% } %>
+        <div class="summary__row summary__row--total"><span>Total</span><span><%= pesos(d.total) %></span></div>
+        <p class="small muted" style="margin:4px 0 0">Precio final por sesión de <%= duracion(s.duracion) %>.</p>
+      </div>
+      <% if (proximo) { %><p class="next-slot" style="margin:0"><%- icono('clock', { tam: 16 }) %>Próximo turno: <%= fDiaCercano(proximo.fecha) %> a las <%= proximo.hora %></p><% } %>
+      <% if (reservable) { %><a class="btn btn--primary btn--block btn--lg" href="/reservar/<%= s.id %>">Elegir día y hora</a>
+      <% } else if (!vistaPrevia) { %><p class="muted-box">Este especialista todavía no recibe reservas online.</p><% } %>
+      <% if (!propio && reservable) { %><a class="btn btn--ghost btn--block" href="<%= usuario ? '/mi/mensajes/nuevo/' + e.id : '/ingresar?volver=/servicios/' + e.slug + '/' + s.slug %>"><%- icono('chat', { tam: 18 }) %> Consultar por mensaje</a><% } %>
+      <%- include('../partials/whatsapp', { e, wa, mensaje: `Hola ${e.nombre.split(' ')[0]}, te escribo desde Alternativa por "${s.titulo}"` }) %>
+      <% if (usuario) { %><button type="button" class="btn btn--ghost btn--block fav<%= favoritos.has(s.id) ? ' is-on' : '' %>" style="margin:0" data-fav="servicio" data-id="<%= s.id %>" aria-pressed="<%= favoritos.has(s.id) ? 'true' : 'false' %>"><%- icono('heart', { tam: 18 }) %> Guardar</button><% } %>
+      <p class="small muted" style="margin:0">Cancelación sin costo hasta <%= cfg.cancelacion.horasReembolsoTotal %> h antes. <a href="/cancelaciones">Ver política</a>.</p>
+    </div>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,33 @@
+<%- include('../partials/head') %>
+<% const def = ajustes[seccion]; %>
+<%- include('../partials/encabezado', { t: 'Configuración', sub: 'Reglas de negocio editables sin tocar código. Cada cambio queda en auditoría y aplica a operaciones nuevas.' }) %>
+<nav class="chips" style="margin-bottom:16px"><% Object.entries(ajustes).forEach(([k, s]) => { %><a class="chip<%= seccion === k ? ' is-active' : '' %>" href="?seccion=<%= k %>"><%= s.titulo %></a><% }) %></nav>
+<div class="layout-aside">
+  <form class="panel stack" method="post" action="/admin/configuracion/<%= seccion %>"><%- include('../partials/csrf') %>
+    <h2><%= def.titulo %></h2><p class="muted"><%= def.descripcion %></p>
+    <% Object.entries(valores).forEach(([k, v]) => { const m = def.campos[k] || { etiqueta: k }; const id = 'cf-' + k; %>
+      <% if (typeof v === 'boolean') { %>
+        <label class="check"><input type="checkbox" name="<%= k %>" value="1"<%= v ? ' checked' : '' %>> <span><b><%= m.etiqueta %></b><% if (m.ayuda) { %><br><span class="small muted"><%= m.ayuda %></span><% } %></span></label>
+      <% } else if (m.opciones) { %>
+        <div class="field"><label for="<%= id %>"><%= m.etiqueta %></label><select id="<%= id %>" name="<%= k %>"><% Object.entries(m.opciones).forEach(([o, t]) => { %><option value="<%= o %>"<%= v === o ? ' selected' : '' %>><%= t %></option><% }) %></select><% if (m.ayuda) { %><p class="field__hint"><%= m.ayuda %></p><% } %></div>
+      <% } else { %>
+        <div class="field"><label for="<%= id %>"><%= m.etiqueta %></label><input id="<%= id %>" name="<%= k %>" value="<%= v %>"<% if (typeof v === 'number') { %> type="number" step="<%= m.paso || 1 %>"<%= m.min !== undefined ? ' min=' + m.min : '' %><%= m.max !== undefined ? ' max=' + m.max : '' %><% } else if (m.tipo) { %> type="<%= m.tipo %>"<% } %>><% if (m.ayuda) { %><p class="field__hint"><%= m.ayuda %></p><% } %></div>
+      <% } %>
+    <% }) %>
+    <div><button class="btn btn--primary" type="submit">Guardar <%= def.titulo.toLowerCase() %></button></div>
+  </form>
+  <aside class="panel stack small">
+    <h3>Servidor</h3>
+    <p>Estas opciones se definen con variables de entorno (archivo <code>.env</code> o Heroku → Settings → Config Vars).</p>
+    <dl class="dl">
+      <div><dt>Entorno</dt><dd><%= servidor.entorno %></dd></div>
+      <div><dt>Pasarela</dt><dd><%= servidor.proveedor === 'simulado' ? 'Simulada (pruebas)' : 'Mercado Pago' %></dd></div>
+      <div><dt>Email</dt><dd><%= servidor.email === 'consola' ? 'Consola (no se envían)' : 'Resend' %></dd></div>
+      <div><dt>Push</dt><dd><%= servidor.push ? 'Activo' : 'Sin claves VAPID' %></dd></div>
+      <div><dt>WhatsApp automático</dt><dd><%= servidor.whatsapp ? 'Meta Cloud API activo' : 'Solo enlaces wa.me' %></dd></div>
+      <div><dt>Google Maps</dt><dd><%= servidor.mapas ? 'API oficial (con clave)' : 'Mapa público embebido' %></dd></div>
+      <div><dt>Base de datos</dt><dd><%= servidor.mongo ? 'MongoDB' : 'Archivo JSON (data/db.json)' %></dd></div>
+    </dl>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

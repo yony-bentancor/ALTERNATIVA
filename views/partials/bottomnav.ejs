@@ -1,0 +1,11 @@
+<% if (area !== 'admin') {
+  const items = area === 'panel'
+    ? [['inicio', '/panel', 'Inicio', 'home', 0], ['agenda', '/panel/agenda', 'Agenda', 'calendar', 0], ['reservas', '/panel/reservas', 'Reservas', 'list', 0], ['clientes', '/panel/clientes', 'Clientes', 'users', 0], ['mas', '/panel/mas', 'Más', 'menu', mensajesSinLeer.especialista]]
+    : [['inicio', '/', 'Inicio', 'home', 0], ['buscar', '/buscar', 'Buscar', 'search', 0], ['reservas', '/mi/reservas', 'Reservas', 'calendar', 0], ['mensajes', '/mi/mensajes', 'Mensajes', 'chat', mensajesSinLeer.usuario], ['perfil', usuario ? '/mi' : '/ingresar', usuario ? 'Perfil' : 'Ingresar', 'user', 0]];
+%>
+<nav class="bottomnav" aria-label="Navegación">
+  <% items.forEach(([k, href, txt, ic, n]) => { %>
+  <a class="bottomnav__item<%= activo === k ? ' is-active' : '' %>" href="<%= href %>"<%- activo === k ? ' aria-current="page"' : '' %>><span class="bottomnav__icon"><%- icono(ic, { tam: 22 }) %><% if (n) { %><span class="dot"><%= n %></span><% } %></span><span><%= txt %></span></a>
+  <% }) %>
+</nav>
+<% } %>

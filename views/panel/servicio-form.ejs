@@ -1,0 +1,28 @@
+<%- include('../partials/head') %>
+<% const mods = [].concat(d.modalidades || []); %>
+<%- include('../partials/encabezado', { t: editando ? 'Editar servicio' : 'Nuevo servicio', volver: editando ? '/panel/servicios/' + editando : '/panel/servicios' }) %>
+<% if (errores.length) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+<form method="post" action="<%= editando ? '/panel/servicios/' + editando : '/panel/servicios' %>" class="stack-lg" style="max-width:760px">
+  <%- include('../partials/csrf') %>
+  <section class="panel">
+    <div class="field"><label for="sf-t">Nombre del servicio</label><input id="sf-t" name="titulo" required minlength="3" maxlength="120" value="<%= d.titulo || '' %>" placeholder="Ej.: Masaje descontracturante"></div>
+    <div class="field"><label for="sf-c">Categoría</label><select id="sf-c" name="categoriaId" required><option value="">Elegí…</option><% categorias.forEach(c => { %><option value="<%= c.id %>"<%= d.categoriaId === c.id ? ' selected' : '' %>><%= c.nombre %></option><% }) %></select></div>
+    <div class="field"><label for="sf-r">Resumen</label><input id="sf-r" name="resumen" maxlength="240" value="<%= d.resumen || '' %>"><p class="field__hint">Una frase que aparece en los resultados de búsqueda.</p></div>
+    <div class="field"><label for="sf-d">Descripción</label><textarea id="sf-d" name="descripcion" rows="6" maxlength="5000"><%= d.descripcion || '' %></textarea></div>
+    <div class="field"><label for="sf-i">Qué incluye <span class="muted">(uno por línea)</span></label><textarea id="sf-i" name="incluye" rows="4"><%= d.incluye || '' %></textarea></div>
+    <div class="field"><label for="sf-p">Cómo prepararse</label><textarea id="sf-p" name="preparacion" rows="2" maxlength="1500"><%= d.preparacion || '' %></textarea></div>
+  </section>
+  <section class="panel"><h2>Precio, duración y modalidad</h2>
+    <div class="grid-2">
+      <div class="field"><label for="sf-pr">Tu precio (UYU)</label><input id="sf-pr" name="precio" type="number" min="100" max="200000" step="10" required value="<%= d.precio || '' %>" inputmode="numeric"><p class="field__hint">Lo que querés cobrar. Al cliente se le suma la tarifa de servicio (<%= fPct(cfg.comision.tasaGeneral) %>).</p></div>
+      <div class="field"><label for="sf-du">Duración (minutos)</label><input id="sf-du" name="duracion" type="number" min="10" max="600" step="5" required value="<%= d.duracion || 60 %>"></div>
+    </div>
+    <fieldset class="field"><legend>Modalidades</legend><div class="checkgrid"><% Object.entries(MODALIDADES).forEach(([k, m]) => { %><label class="check check--pill"><input type="checkbox" name="modalidades" value="<%= k %>"<%= mods.includes(k) ? ' checked' : '' %>><span><%= m.texto %></span></label><% }) %></div></fieldset>
+    <div class="grid-2">
+      <div class="field"><label for="sf-rd">Recargo a domicilio (UYU)</label><input id="sf-rd" name="recargoDomicilio" type="number" min="0" step="10" value="<%= d.recargoDomicilio || 0 %>"></div>
+      <div class="field"><label for="sf-am">Anticipación máxima (días) <span class="muted">(opcional)</span></label><input id="sf-am" name="anticipacionMax" type="number" min="1" max="365" value="<%= d.anticipacionMax || '' %>"></div>
+    </div>
+  </section>
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit"><%= editando ? 'Guardar cambios' : 'Crear servicio' %></button></div>
+</form>
+<%- include('../partials/pie') %>

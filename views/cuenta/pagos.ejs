@@ -1,0 +1,15 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Mis pagos', sub: 'Historial de pagos y reembolsos. Alternativa no guarda datos de tarjetas.' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'pagos' }) %>
+<% if (!lista.length) { %><%- include('../partials/vacio', { t: 'Todavía no hiciste pagos', ic: 'card' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Fecha</th><th>Reserva</th><th>Medio</th><th>Estado</th><th class="num">Monto</th><th class="num">Reembolsado</th></tr></thead>
+  <tbody>
+  <% lista.forEach(p => { const r = rs.get(p.reservaId); %>
+  <tr><td><%= fCorta(p.creado) %></td><td><% if (r) { %><a href="/mi/reservas/<%= r.id %>"><%= r.foto.servicio %></a><br><span class="small muted"><%= r.codigo %></span><% } %></td><td><%= { credit_card: 'Tarjeta de crédito', debit_card: 'Tarjeta de débito', account_money: 'Dinero en cuenta' }[p.medio] || (p.proveedor === 'offline' ? 'Al especialista' : '—') %></td><td><%= ESTADOS_PAGO[p.estado] %></td><td class="num"><%= pesos(p.monto) %></td><td class="num"><%= p.reembolsado ? pesos(p.reembolsado) : '—' %></td></tr>
+  <% }) %>
+  </tbody>
+</table></div>
+<% } %>
+<p class="small" style="margin-top:12px"><a href="/mi/metodos-de-pago">Métodos de pago guardados</a></p>
+<%- include('../partials/pie') %>

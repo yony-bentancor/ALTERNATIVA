@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Usuarios', sub: p.total + ' cuentas' }) %>
+<form class="toolbar">
+  <div class="field"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="Nombre o email" aria-label="Buscar"></div>
+  <div class="field"><select name="rol" aria-label="Rol"><option value="">Todos los roles</option><% Object.entries(ROLES).forEach(([k, t]) => { %><option value="<%= k %>"<%= query.rol === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <div class="field"><select name="estado" aria-label="Estado"><option value="">Todos</option><option value="activo"<%= query.estado === 'activo' ? ' selected' : '' %>>Activos</option><option value="suspendido"<%= query.estado === 'suspendido' ? ' selected' : '' %>>Suspendidos</option></select></div>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th>Alta</th><th>Último ingreso</th></tr></thead>
+  <tbody><% p.items.forEach(u => { %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><% if (u.avatar) { %><img class="avatar avatar--sm" src="<%= u.avatar %>" alt=""><% } else { %><span class="avatar avatar--sm avatar--initial"><%= u.nombre[0] %></span><% } %><a href="/admin/usuarios/<%= u.id %>"><%= u.nombre %></a><% if (u.prueba) { %> <%- include('../partials/pill', { texto: 'Prueba', tono: 'info' }) %><% } %></div></td>
+    <td class="small"><%= u.email %><%= u.emailVerificado ? '' : ' (sin verificar)' %></td>
+    <td><%- include('../partials/pill', { texto: ROLES[u.rol], tono: u.rol === 'admin' ? 'brand' : u.rol === 'especialista' ? 'info' : '' }) %></td>
+    <td><%- include('../partials/pill', { texto: u.estado, tono: u.estado === 'activo' ? 'ok' : 'danger' }) %></td>
+    <td class="small"><%= fCorta(u.creado) %></td><td class="small"><%= u.ultimoIngreso ? fRelativa(u.ultimoIngreso) : '—' %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

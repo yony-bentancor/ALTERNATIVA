@@ -1,0 +1,32 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Promociones', sub: 'Las de especialistas las financia el especialista; las institucionales, Alternativa con su tarifa.' }) %>
+<div class="layout-aside">
+  <div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Promoción</th><th>De</th><th class="num">Descuento</th><th>Código</th><th>Vigencia</th><th class="num">Usos</th><th>Estado</th></tr></thead>
+      <tbody><% lista.forEach(p => { %><tr>
+        <td><b><%= p.titulo %></b><br><span class="small muted"><%= { todos: 'Todos', nuevos: 'Clientes nuevos', recurrentes: 'Recurrentes' }[p.publico] %> · financia <%= p.financia %></span></td>
+        <td class="small"><%= p.especialistaId ? (espMap.get(p.especialistaId)?.nombre || '') : 'Alternativa' %></td>
+        <td class="num"><%= p.descuento %>%</td><td><%= p.codigo || '—' %></td>
+        <td class="small"><%= p.desde ? fCorta(p.desde) : 'Ya' %> → <%= p.hasta ? fCorta(new Date(new Date(p.hasta) - 1)) : 'sin fin' %></td>
+        <td class="num"><%= p.usos || 0 %><%= p.maxUsos ? '/' + p.maxUsos : '' %></td>
+        <td><form method="post" action="/admin/promociones/<%= p.id %>/estado" class="row"><%- include('../partials/csrf') %><select name="estado" aria-label="Estado"><% Object.entries({ activa: 'Activa', pausada: 'Pausada', terminada: 'Terminada', en_revision: 'En revisión' }).forEach(([k, t]) => { %><option value="<%= k %>"<%= p.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select><button class="btn btn--ghost btn--sm" type="submit">OK</button></form></td>
+      </tr><% }) %></tbody>
+    </table></div>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/admin/promociones"><%- include('../partials/csrf') %>
+      <h2>Promoción institucional</h2>
+      <div class="field"><label>Título</label><input name="titulo" required maxlength="100" placeholder="Día del bienestar"></div>
+      <div class="field"><label>Descuento (%)</label><input name="descuento" type="number" min="1" max="50" value="10" required></div>
+      <div class="field"><label>Código</label><input name="codigo" maxlength="20" placeholder="BIENESTAR10" style="text-transform:uppercase"></div>
+      <div class="field"><label>Para quién</label><select name="publico"><option value="todos">Todos</option><option value="nuevos">Clientes nuevos</option><option value="recurrentes">Recurrentes</option></select></div>
+      <div class="grid-2"><div class="field"><label>Desde</label><input name="desde" type="date" min="<%= hoy %>"></div><div class="field"><label>Hasta</label><input name="hasta" type="date" min="<%= hoy %>"></div></div>
+      <div class="field"><label>Máximo de usos (0 = sin límite)</label><input name="maxUsos" type="number" min="0" value="0"></div>
+      <div class="field"><label>Descripción</label><textarea name="descripcion" rows="2"></textarea></div>
+      <p class="small muted">El descuento sale de la tarifa de Alternativa: el especialista cobra igual.</p>
+      <button class="btn btn--primary btn--sm" type="submit">Crear promoción</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

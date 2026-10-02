@@ -1,0 +1,13 @@
+<%# Mapa de Google embebido. Recibe: lugar {lat, lng, q}, texto, exacto (muestra "Cómo llegar") %>
+<% const src = mapaEmbed(lugar); if (src) { %>
+<div class="map-box">
+  <iframe src="<%= src %>" title="Mapa: <%= texto %>" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+  <div class="map-box__foot">
+    <span><%- icono('pin', { tam: 16 }) %> <%= texto %></span>
+    <span class="row-actions">
+      <a class="btn btn--ghost btn--sm" href="<%= mapaAbrir(lugar) %>" target="_blank" rel="noopener">Abrir en Google Maps</a>
+      <% if (typeof exacto !== 'undefined' && exacto) { %><a class="btn btn--primary btn--sm" href="<%= mapaComoLlegar(lugar) %>" target="_blank" rel="noopener">Cómo llegar</a><% } %>
+    </span>
+  </div>
+</div>
+<% } %>

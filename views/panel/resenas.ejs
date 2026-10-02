@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reseñas', sub: (e.stats && e.stats.resenas ? '★ ' + fRating(e.stats.rating) + ' · ' + e.stats.resenas + ' reseñas verificadas' : 'Solo reseñan quienes tomaron una sesión con vos') }) %>
+<form class="toolbar">
+  <div class="field"><select name="servicio" aria-label="Servicio"><option value="">Todos los servicios</option><% servicios.forEach(s => { %><option value="<%= s.id %>"<%= query.servicio === s.id ? ' selected' : '' %>><%= s.titulo %></option><% }) %></select></div>
+  <label class="check"><input type="checkbox" name="sinResponder" value="1"<%= query.sinResponder === '1' ? ' checked' : '' %>> Sin responder</label>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reseñas para mostrar', ic: 'star' }) %><% } %>
+<div class="stack">
+<% p.items.forEach(rv => { %>
+  <article class="panel review" id="r-<%= rv.id %>">
+    <div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 16 }) %></div>
+    <div class="review__meta"><%= servMap.get(rv.servicioId)?.titulo || 'Servicio' %> · <%= fRelativa(rv.creado) %><% if (rv.estado !== 'publicada') { %> · <span class="pill pill--warn"><%= rv.estado === 'en_revision' ? 'En revisión' : 'Oculta' %></span><% } %></div>
+    <% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %>
+    <% if (rv.respuesta) { %><div class="review__reply"><b>Tu respuesta</b> · <span class="small muted"><%= fRelativa(rv.respuesta.fecha) %></span><p><%= rv.respuesta.texto %></p></div><% } %>
+    <details<%= rv.respuesta ? '' : ' open' %>><summary class="small"><%= rv.respuesta ? 'Editar respuesta' : 'Responder' %></summary>
+      <form method="post" action="/panel/resenas/<%= rv.id %>/responder" style="margin-top:8px"><%- include('../partials/csrf') %>
+        <div class="field"><textarea name="texto" rows="3" minlength="2" maxlength="1000" required placeholder="Agradecé o aclará con respeto. Tu respuesta es pública."><%= rv.respuesta ? rv.respuesta.texto : '' %></textarea></div>
+        <button class="btn btn--primary btn--sm" type="submit">Publicar respuesta</button>
+      </form>
+    </details>
+    <% if (rv.pedidoRevision && !rv.pedidoRevision.resuelto) { %><p class="small muted">Pediste revisión: <%= motivos[rv.pedidoRevision.motivo] || rv.pedidoRevision.motivo %>. La estamos analizando.</p>
+    <% } else if (rv.pedidoRevision && rv.pedidoRevision.resuelto) { %><p class="small muted">Revisión resuelta: <%= rv.pedidoRevision.resolucion || '' %></p>
+    <% } else { %>
+    <details><summary class="small muted">Pedir revisión a Alternativa</summary>
+      <form method="post" action="/panel/resenas/<%= rv.id %>/revision" style="margin-top:8px"><%- include('../partials/csrf') %>
+        <div class="field"><label>Motivo</label><select name="motivo" required><option value="">Elegí</option><% Object.entries(motivos).forEach(([k, t]) => { %><option value="<%= k %>"><%= t %></option><% }) %></select></div>
+        <div class="field"><label>Detalle</label><textarea name="detalle" rows="2" maxlength="1000"></textarea><p class="field__hint">Solo revisamos reseñas que incumplen las reglas (insultos, datos personales, no hubo sesión). Una mala opinión respetuosa no se elimina.</p></div>
+        <button class="btn btn--ghost btn--sm" type="submit">Enviar pedido</button>
+      </form>
+    </details><% } %>
+  </article>
+<% }) %>
+</div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

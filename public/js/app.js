@@ -77,7 +77,7 @@
     var on = btn.getAttribute('aria-pressed') !== 'true';
     btn.classList.toggle('is-on', on);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    api('/api/favoritos', { method: 'POST', body: { kind: btn.dataset.fav, id: btn.dataset.id, on: on } })
+    api('/api/favoritos', { method: 'POST', body: { tipo: btn.dataset.fav, id: btn.dataset.id, on: on } })
       .then(function (r) { btn.setAttribute('aria-label', r.on ? 'Quitar de favoritos' : 'Guardar en favoritos'); })
       .catch(function () { btn.classList.toggle('is-on', !on); btn.setAttribute('aria-pressed', on ? 'false' : 'true'); });
   });
@@ -123,7 +123,7 @@
 
     function load(from) {
       return api('/api/disponibilidad/' + serviceId + '?desde=' + from + '&dias=42' + (exclude ? '&excluir=' + exclude : '')).then(function (r) {
-        r.days.forEach(function (d) { summary[d.date] = d; });
+        r.dias.forEach(function (d) { summary[d.fecha] = { count: d.cantidad, first: d.primero }; });
       });
     }
 
@@ -157,9 +157,9 @@
       var p = date.split('-');
       if (dayTitle) dayTitle.textContent = 'Horarios del ' + (+p[2]) + ' de ' + MONTHS[+p[1] - 1];
       api('/api/horarios/' + serviceId + '?fecha=' + date + (exclude ? '&excluir=' + exclude : '')).then(function (r) {
-        if (!r.slots.length) { slotsEl.innerHTML = '<p class="slots-empty">No quedan horarios libres este día. Probá con otra fecha.</p>'; return; }
+        if (!r.horarios.length) { slotsEl.innerHTML = '<p class="slots-empty">No quedan horarios libres este día. Probá con otra fecha.</p>'; return; }
         var html = '<div class="slots">';
-        r.slots.forEach(function (s) {
+        r.horarios.forEach(function (s) { s.time = s.hora;
           if (mode === 'reschedule') {
             html += '<button type="button" class="slot" data-time="' + s.time + '">' + s.time + '</button>';
           } else {
@@ -229,7 +229,7 @@
     function poll() {
       tries++;
       api('/api/pagos/' + id + '/estado').then(function (r) {
-        if (r.final) { window.location.href = r.redirect; return; }
+        if (r.final) { window.location.href = r.destino; return; }
         if (tries < 40) setTimeout(poll, 3000);
       }).catch(function () { if (tries < 40) setTimeout(poll, 5000); });
     }
@@ -245,17 +245,17 @@
 
     function append(m) {
       var div = document.createElement('div');
-      div.className = 'bubble ' + (m.mine ? 'bubble--me' : 'bubble--them');
-      div.innerHTML = esc(m.body) + '<span class="bubble__time">' + esc(m.time) + '</span>';
+      div.className = 'bubble ' + (m.mio ? 'bubble--me' : 'bubble--them');
+      div.innerHTML = esc(m.texto) + '<span class="bubble__time">' + esc(m.hora) + '</span>';
       thread.appendChild(div);
-      last = m.at;
+      last = m.fecha;
     }
     function poll() {
       if (document.hidden) return setTimeout(poll, 8000);
       api('/api/mensajes/' + conv + (last ? '?desde=' + encodeURIComponent(last) : '')).then(function (r) {
         var atBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 60;
-        r.messages.forEach(function (m) { if (!m.mine) append(m); else last = m.at; });
-        if (r.messages.length && atBottom) thread.scrollTop = thread.scrollHeight;
+        r.mensajes.forEach(function (m) { if (!m.mio) append(m); else last = m.fecha; });
+        if (r.mensajes.length && atBottom) thread.scrollTop = thread.scrollHeight;
         setTimeout(poll, 5000);
       }).catch(function () { setTimeout(poll, 15000); });
     }
@@ -272,10 +272,10 @@
         var body = ta.value.trim();
         if (!body) return;
         ta.value = '';
-        api('/api/mensajes/' + conv, { method: 'POST', body: { body: body } }).then(function (r) {
-          append({ body: r.message.body, time: r.message.time, at: r.message.at, mine: true });
+        api('/api/mensajes/' + conv, { method: 'POST', body: { texto: body } }).then(function (r) {
+          append(r.mensaje);
           thread.scrollTop = thread.scrollHeight;
-          if (r.notice) { var n = form.querySelector('[data-notice]'); if (n) { n.textContent = r.notice; n.hidden = false; } }
+          if (r.aviso) { var n = form.querySelector('[data-notice]'); if (n) { n.textContent = r.aviso; n.hidden = false; } }
         }).catch(function (err) { ta.value = body; alert(err.message); });
       });
     }
@@ -290,7 +290,7 @@
       var idx = box.querySelectorAll('.sched-range').length;
       var row = document.createElement('div');
       row.className = 'sched-range';
-      row.innerHTML = '<input type="time" name="weekly[' + day + '][' + idx + '][start]" value="09:00" aria-label="Desde"><span>a</span><input type="time" name="weekly[' + day + '][' + idx + '][end]" value="13:00" aria-label="Hasta"><button type="button" class="btn btn--text btn--sm" data-remove-range aria-label="Quitar franja">Quitar</button>';
+      row.innerHTML = '<input type="time" name="semanal[' + day + '][' + idx + '][inicio]" value="09:00" aria-label="Desde"><span>a</span><input type="time" name="semanal[' + day + '][' + idx + '][fin]" value="13:00" aria-label="Hasta"><button type="button" class="btn btn--text btn--sm" data-remove-range aria-label="Quitar franja">Quitar</button>';
       box.appendChild(row);
     }
     var rm = e.target.closest('[data-remove-range]');

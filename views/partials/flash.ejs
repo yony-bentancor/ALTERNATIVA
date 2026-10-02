@@ -1,0 +1,3 @@
+<% if (flash) { const tipo = flash.tipo === 'ok' ? 'success' : flash.tipo === 'error' ? 'error' : flash.tipo === 'alerta' ? 'warn' : 'info'; %>
+<div class="flashes" role="status"><div class="flash flash--<%= tipo %>"><%- icono(tipo === 'error' ? 'alert' : tipo === 'success' ? 'checkCircle' : 'info', { tam: 18 }) %><span><%= flash.texto %></span><button type="button" class="flash__close" data-dismiss aria-label="Cerrar"><%- icono('x', { tam: 16 }) %></button></div></div>
+<% } %>

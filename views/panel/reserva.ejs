@@ -1,0 +1,53 @@
+<%- include('../partials/head') %>
+<% const futura = new Date(r.inicio) > new Date(); const activa = ['pagada', 'confirmada'].includes(r.estado); %>
+<%- include('../partials/encabezado', { t: r.foto.usuario, sub: r.foto.servicio + ' · ' + r.codigo, volver: '/panel/reservas' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel">
+      <p><%- include('../partials/estado', { estado: r.estado }) %><% if (r.primeraVez) { %> <span class="pill pill--info">Primera vez</span><% } else { %> <span class="pill">Cliente recurrente (<%= previas %> sesiones)</span><% } %><% if (r.incidencia && r.incidencia.abierta) { %> <span class="pill pill--danger">Incidencia</span><% } %></p>
+      <dl class="dl">
+        <div><dt>Cuándo</dt><dd><b><%= fFechaHora(r.inicio) %></b> a <%= fHora(r.fin) %> (<%= duracion(r.foto.duracion) %>)</dd></div>
+        <div><dt>Modalidad</dt><dd><%= MODALIDADES[r.modalidad].texto %><% if (r.modalidad === 'domicilio') { %> · <%= r.lugar.direccion %><% } %></dd></div>
+        <% if (r.notasUsuario) { %><div><dt>Notas del cliente</dt><dd><%= r.notasUsuario %></dd></div><% } %>
+        <div><dt>Contacto</dt><dd><% if (mostrarTelefono && cliente && cliente.telefono) { %><%= cliente.telefono %> <a class="btn btn--wa btn--sm" href="<%= enlaceWhatsapp(cliente.telefono, `Hola ${cliente.nombre.split(' ')[0]}, te escribo por tu reserva del ${fFechaHora(r.inicio)}`) %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 14 }) %> WhatsApp</a><% } else { %><span class="muted">Se comparte con la reserva paga (si el cliente lo permite).</span><% } %></dd></div>
+      </dl>
+    </section>
+    <% if (r.modalidad === 'domicilio' && activa) { %><section><h3>Dirección del cliente</h3><%- include('../partials/mapa', { lugar: { q: r.lugar.direccion + ', Uruguay' }, texto: r.lugar.direccion, exacto: true }) %></section><% } %>
+    <form method="post" action="/panel/reservas/<%= r.id %>/notas" class="panel">
+      <%- include('../partials/csrf') %>
+      <h3>Notas privadas</h3>
+      <div class="field"><textarea name="notas" rows="3" maxlength="2000" placeholder="Solo las ves vos"><%= r.notasEspecialista || '' %></textarea></div>
+      <% if (r.modalidad === 'online') { %><div class="field"><label for="rv-l">Enlace de la videollamada</label><input id="rv-l" name="enlaceOnline" type="url" value="<%= r.lugar.enlaceOnline || '' %>" placeholder="https://meet…"><p class="field__hint">El cliente lo ve en el detalle de su reserva.</p></div><% } %>
+      <button class="btn btn--ghost btn--sm" type="submit">Guardar</button>
+    </form>
+    <% if (resena) { %><section class="panel"><h3>Reseña del cliente</h3><%- include('../partials/estrellas', { n: resena.puntaje }) %><p><%= resena.comentario %></p><a class="small" href="/panel/resenas#r-<%= resena.id %>"><%= resena.respuesta ? 'Ver respuesta' : 'Responder' %></a></section><% } %>
+    <section><h3>Historial</h3><ul class="timeline"><% (r.historial || []).forEach(h => { %><li><b><%= (ESTADOS_RESERVA[h.estado] || {}).texto || h.estado %></b> · <span class="muted"><%= fFechaHora(h.fecha) %></span><% if (h.nota) { %><br><span class="small"><%= h.nota %></span><% } %></li><% }) %></ul></section>
+  </div>
+  <aside>
+    <div class="panel stack">
+      <div class="summary">
+        <div class="summary__row"><span>Cobra el cliente</span><span><%= pesos(r.foto.total) %></span></div>
+        <div class="summary__row"><span>Tarifa de Alternativa</span><span>− <%= pesos(r.foto.comision) %></span></div>
+        <% if (r.foto.descuento) { %><div class="summary__row"><span><%= r.foto.promocion %></span><span>− <%= pesos(r.foto.descuento) %></span></div><% } %>
+        <div class="summary__row"><span>Comisión de pasarela (est.)</span><span>− <%= pesos(r.foto.procesadorEstimado) %></span></div>
+        <div class="summary__row summary__row--total"><span>Recibís</span><span><%= pesos(r.foto.recibeEspecialista) %></span></div>
+        <% if (pago) { %><p class="small muted" style="margin:4px 0 0">Pago <%= (ESTADOS_PAGO[pago.estado] || '').toLowerCase() %> · <%= MODELOS_COBRO[pago.modeloCobro]?.corto %></p><% } %>
+        <% reembolsos.forEach(rb => { %><p class="small" style="margin:4px 0 0">Reembolso <%= pesos(rb.monto) %> (<%= rb.porcentaje %>%) · <%= rb.estado %></p><% }) %>
+      </div>
+      <% if (r.estado === 'pagada') { %><form method="post" action="/panel/reservas/<%= r.id %>/confirmar"><%- include('../partials/csrf') %><button class="btn btn--primary btn--block" type="submit">Confirmar reserva</button></form><% } %>
+      <a class="btn btn--ghost btn--block" href="<%= conversacion ? '/panel/mensajes/' + conversacion.id : '/panel/clientes/' + r.usuarioId + '/mensaje' %>"><%- icono('chat', { tam: 18 }) %> Mensaje</a>
+      <a class="btn btn--ghost btn--block" href="/panel/clientes/<%= r.usuarioId %>"><%- icono('user', { tam: 18 }) %> Ficha del cliente</a>
+      <% if (activa && !futura) { %>
+        <form method="post" action="/panel/reservas/<%= r.id %>/realizada"><%- include('../partials/csrf') %><button class="btn btn--lav btn--block" type="submit">Marcar como realizada</button></form>
+        <form method="post" action="/panel/reservas/<%= r.id %>/ausencia" data-confirm="¿Registrar que el cliente no se presentó? Se aplica la política de cancelación."><%- include('../partials/csrf') %><button class="btn btn--ghost btn--block" type="submit">El cliente no vino</button></form>
+      <% } %>
+      <% if (activa && futura) { %>
+        <a class="btn btn--ghost btn--block" href="/panel/reservas/<%= r.id %>/reprogramar"><%- icono('repeat', { tam: 18 }) %> Reprogramar</a>
+        <details><summary class="btn btn--danger btn--block">Cancelar reserva</summary>
+          <form method="post" action="/panel/reservas/<%= r.id %>/cancelar" style="margin-top:8px" data-confirm="¿Cancelar? El cliente recibe el 100% de reembolso."><%- include('../partials/csrf') %><div class="field"><label for="cr-m">Motivo para el cliente</label><textarea id="cr-m" name="motivo" required minlength="5" rows="3"></textarea></div><button class="btn btn--danger btn--block" type="submit">Confirmar cancelación</button></form>
+        </details>
+      <% } %>
+    </div>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

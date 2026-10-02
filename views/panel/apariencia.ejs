@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<% const dz = e.diseno || {}; const orden = dz.orden || ['servicios','sobre','galeria','video','resenas','ubicacion']; const nombres = { servicios: 'Servicios', sobre: 'Sobre mí', galeria: 'Fotos', video: 'Video', resenas: 'Reseñas', ubicacion: 'Ubicación' }; %>
+<%- include('../partials/encabezado', { t: 'Apariencia de la ficha', sub: 'La identidad visual es de Alternativa; vos elegís el estilo y el orden de las secciones.', volver: '/panel/perfil' }) %>
+<form method="post" action="/panel/perfil/apariencia" class="stack-lg" style="max-width:720px">
+  <%- include('../partials/csrf') %>
+  <fieldset class="panel field"><legend>Estilo</legend>
+    <div class="modality-pick"><% [['clasica','Clásica','Portada con tu foto'],['serena','Serena','Tonos suaves y lavanda'],['luminosa','Luminosa','Azul y lavanda, más contraste']].forEach(([k, t, s]) => { %><label><input type="radio" name="variante" value="<%= k %>"<%= (dz.variante || 'clasica') === k ? ' checked' : '' %>><span><b><%= t %></b> <span class="muted small">· <%= s %></span></span></label><% }) %></div>
+  </fieldset>
+  <section class="panel"><h2>Orden de las secciones</h2><p class="small muted">Elegí qué va primero (1 = arriba).</p>
+    <% orden.forEach((k, i) => { %><div class="row" style="margin:6px 0"><select name="orden" aria-label="Posición <%= i + 1 %>" style="max-width:240px"><% Object.entries(nombres).forEach(([v, t]) => { %><option value="<%= v %>"<%= v === k ? ' selected' : '' %>><%= i + 1 %>. <%= t %></option><% }) %></select></div><% }) %>
+  </section>
+  <section class="panel"><h2>Servicio destacado</h2>
+    <div class="field"><select name="servicioDestacado"><option value="">Ninguno</option><% servicios.forEach(s => { %><option value="<%= s.id %>"<%= dz.servicioDestacado === s.id ? ' selected' : '' %>><%= s.titulo %></option><% }) %></select><p class="field__hint">Se muestra resaltado al principio de tus servicios.</p></div>
+    <label class="check"><input type="checkbox" name="videoPrimero" value="1"<%= dz.videoPrimero ? ' checked' : '' %>><span>Mostrar el video primero</span></label>
+  </section>
+  <div class="form-actions"><button class="btn btn--primary" type="submit">Guardar</button><a class="btn btn--ghost" href="/especialistas/<%= e.slug %>" target="_blank">Ver ficha</a></div>
+</form>
+<%- include('../partials/pie') %>

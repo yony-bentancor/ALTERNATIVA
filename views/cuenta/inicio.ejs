@@ -1,0 +1,34 @@
+<%- include('../partials/head') %>
+<div class="pagehead">
+  <% if (usuario.avatar) { %><img class="avatar avatar--lg" src="<%= usuario.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= iniciales(usuario) %></span><% } %>
+  <div class="pagehead__text"><h1>Hola, <%= primerNombre(usuario) %></h1><p class="muted"><%= total %> <%= total === 1 ? 'reserva' : 'reservas' %> en Alternativa</p></div>
+</div>
+<%- include('../partials/cuenta-nav', { actual: 'inicio' }) %>
+<% if (!usuario.emailVerificado) { %><div class="flash flash--warn" style="margin-bottom:12px"><%- icono('mail', { tam: 18 }) %><span>Confirmá tu correo para recibir los avisos de tus reservas.</span><form method="post" action="/verificar/reenviar"><%- include('../partials/csrf') %><button class="btn btn--sm" type="submit">Reenviar email</button></form></div><% } %>
+<% pendientesPago.forEach(r => { %><div class="flash flash--warn" style="margin-bottom:12px"><%- icono('clock', { tam: 18 }) %><span>Tenés una reserva sin pagar: <b><%= r.foto.servicio %></b> (<%= fFechaHora(r.inicio) %>).</span><a class="btn btn--sm btn--primary" href="/pago/<%= r.id %>">Pagar</a></div><% }) %>
+
+<div class="grid-2">
+  <section class="panel">
+    <div class="panel__title"><h2>Próximas sesiones</h2><a href="/mi/reservas">Ver todas</a></div>
+    <% if (!proximas.length) { %><%- include('../partials/vacio', { t: 'No tenés sesiones próximas', accion: 'Buscar un servicio', href: '/buscar', ic: 'calendar' }) %><% } %>
+    <div class="stack"><% proximas.slice(0, 3).forEach(r => { %><%- include('../partials/reserva-item', { r, base: '/mi/reservas', quien: 'especialista' }) %><% }) %></div>
+  </section>
+  <div class="stack-lg">
+    <% if (porValorar.length) { %>
+    <section class="panel panel--lav"><h2>Contanos cómo te fue</h2>
+      <% porValorar.slice(0, 3).forEach(r => { %><div class="row row--between" style="padding:6px 0"><span><b><%= r.foto.servicio %></b><br><span class="small muted"><%= r.foto.especialista %> · <%= fCorta(r.inicio) %></span></span><a class="btn btn--sm btn--lav" href="/mi/reservas/<%= r.id %>/valorar">Valorar</a></div><% }) %>
+    </section>
+    <% } %>
+    <% if (volver.length) { %>
+    <section class="panel"><h2>Volver a reservar</h2>
+      <% volver.forEach(r => { %><div class="row row--between" style="padding:6px 0"><span><b><%= r.foto.servicio %></b><br><span class="small muted"><%= r.foto.especialista %></span></span><a class="btn btn--sm" href="/mi/reservas/<%= r.id %>/volver">Repetir</a></div><% }) %>
+    </section>
+    <% } %>
+    <section class="panel"><div class="panel__title"><h2>Últimos avisos</h2><a href="/mi/notificaciones">Ver todos</a></div>
+      <ul class="list"><% avisos.forEach(n => { %><li><a class="list-row" href="/mi/notificaciones/<%= n.id %>"><div class="list-row__main"><p class="list-row__title<%= n.leida ? '' : ' conv-unread' %>"><%= n.titulo %></p><p class="list-row__sub truncate"><%= n.texto %></p></div><span class="small muted"><%= fRelativa(n.creado) %></span></a></li><% }) %></ul>
+      <% if (!avisos.length) { %><p class="muted">Sin avisos.</p><% } %>
+    </section>
+    <section class="panel panel--soft"><p style="margin:0"><%- icono('heart', { tam: 16 }) %> <a href="/mi/favoritos"><%= favoritos %> favoritos guardados</a></p></section>
+  </div>
+</div>
+<%- include('../partials/pie') %>

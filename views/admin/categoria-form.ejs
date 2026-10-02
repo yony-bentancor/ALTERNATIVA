@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: editando ? 'Editar categoría' : 'Nueva categoría', sub: d.nombre || '', volver: '/admin/categorias' }) %>
+<% if (errores.length) { %><div class="flash flash--error" role="alert"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+<form class="panel stack" method="post" action="<%= editando ? '/admin/categorias/' + editando : '/admin/categorias' %>" style="max-width:760px"><%- include('../partials/csrf') %>
+  <div class="grid-2">
+    <div class="field"><label for="c-n">Nombre</label><input id="c-n" name="nombre" value="<%= d.nombre || '' %>" required maxlength="80"></div>
+    <div class="field"><label for="c-s">Enlace</label><input id="c-s" name="slug" value="<%= d.slug || '' %>" pattern="[a-z0-9-]*" placeholder="se genera del nombre"><p class="field__hint">La categoría se ve en alternativa.uy/enlace. Solo minúsculas, números y guiones; cambiarlo rompe enlaces existentes.</p></div>
+    <div class="field"><label for="c-e">Estado</label><select id="c-e" name="estado"><% [['activa', 'Activa'], ['pendiente', 'Pendiente (propuesta)'], ['oculta', 'Oculta']].forEach(([k, t]) => { %><option value="<%= k %>"<%= d.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+    <div class="field"><label for="c-o">Orden</label><input id="c-o" name="orden" type="number" min="0" max="999" value="<%= d.orden || 0 %>"></div>
+    <div class="field"><label for="c-i">Ícono</label><select id="c-i" name="icono"><% ['leaf', 'hands', 'needle', 'lotus', 'yinyang', 'sparkle', 'moon', 'magnet', 'sun', 'breath', 'globe', 'heart'].forEach(ic => { %><option<%= d.icono === ic ? ' selected' : '' %>><%= ic %></option><% }) %></select></div>
+    <div class="field"><label for="c-c">Color</label><input id="c-c" name="color" type="color" value="<%= d.color || '#8B5CF6' %>"></div>
+  </div>
+  <div class="field"><label for="c-im">Imagen (dirección)</label><input id="c-im" name="imagen" value="<%= d.imagen || '' %>" placeholder="/img/demo/categorias/yoga.jpg"><p class="field__hint">Podés subir una imagen desde Contenido y pegar acá su dirección.</p></div>
+  <% if (d.imagen) { %><img class="cover-preview" src="<%= d.imagen %>" alt=""><% } %>
+  <div class="field"><label for="c-d">Descripción corta</label><textarea id="c-d" name="descripcion" rows="2" maxlength="1000"><%= d.descripcion || '' %></textarea></div>
+  <div class="field"><label for="c-dl">Texto largo (SEO)</label><textarea id="c-dl" name="descripcionLarga" rows="5"><%= d.descripcionLarga || '' %></textarea></div>
+  <div class="grid-2">
+    <div class="field"><label for="c-st">Título para buscadores</label><input id="c-st" name="seoTitulo" value="<%= d.seoTitulo || '' %>" maxlength="70"></div>
+    <div class="field"><label for="c-sd">Descripción para buscadores</label><input id="c-sd" name="seoDescripcion" value="<%= d.seoDescripcion || '' %>" maxlength="160"></div>
+  </div>
+  <label class="check"><input type="checkbox" name="destacada" value="1"<%= d.destacada ? ' checked' : '' %>> Destacada en el inicio</label>
+  <div class="row"><button class="btn btn--primary" type="submit"><%= editando ? 'Guardar' : 'Crear categoría' %></button><a class="btn btn--ghost" href="/admin/categorias">Cancelar</a></div>
+</form>
+<%- include('../partials/pie') %>

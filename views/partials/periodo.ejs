@@ -1,0 +1,2 @@
+<%# Selector de período. Recibe: periodo, base %>
+<nav class="chips" aria-label="Período" style="margin-bottom:12px"><% [['7d','7 días'],['30d','30 días'],['90d','90 días'],['365d','12 meses']].forEach(([k, t]) => { %><a class="chip<%= periodo === k ? ' is-active' : '' %>" href="<%= base %>?periodo=<%= k %>"><%= t %></a><% }) %></nav>

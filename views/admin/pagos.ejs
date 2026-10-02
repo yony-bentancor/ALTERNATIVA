@@ -1,0 +1,27 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Pagos', sub: 'Alternativa nunca guarda tarjetas: solo el identificador de la pasarela.', acciones: '<form method="post" action="/admin/pagos/conciliar"><input type="hidden" name="_csrf" value="' + csrf + '"><button class="btn btn--ghost btn--sm" type="submit">' + icono('repeat', { tam: 16 }) + ' Conciliar pendientes</button></form>' }) %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Volumen acreditado', valor: pesos(totales.bruto) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Comisión Alternativa', valor: pesos(totales.comision) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Costo de pasarela', valor: pesos(totales.pasarela) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reembolsado', valor: pesos(totales.reembolsado), sub: totales.disputa ? totales.disputa + ' en disputa' : '' }) %>
+</div>
+<form class="toolbar" style="margin-top:12px">
+  <div class="field"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="ID de pago o de la pasarela" aria-label="Buscar"></div>
+  <div class="field"><select name="estado" aria-label="Estado"><option value="">Todos los estados</option><% Object.entries(ESTADOS_PAGO).forEach(([k, t]) => { %><option value="<%= k %>"<%= query.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <div class="field"><select name="modelo" aria-label="Modelo"><option value="">Todos los modelos</option><% Object.entries(MODELOS_COBRO).forEach(([k, m]) => { %><option value="<%= k %>"<%= query.modelo === k ? ' selected' : '' %>><%= m.corto %></option><% }) %></select></div>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Fecha</th><th>Reserva</th><th>Pasarela</th><th>Modelo</th><th>Estado</th><th class="num">Monto</th><th class="num">Comisión</th><th class="num">Pasarela</th><th class="num">Reembolsado</th></tr></thead>
+  <tbody><% p.items.forEach(x => { const r = rs.get(x.reservaId); %><tr>
+    <td class="small"><a href="/admin/pagos/<%= x.id %>"><%= fCorta(x.creado) %></a></td>
+    <td class="small"><% if (r) { %><a href="/admin/reservas/<%= r.id %>"><%= r.codigo %></a><br><span class="muted"><%= r.foto.usuario %> → <%= r.foto.especialista %></span><% } %></td>
+    <td class="small"><%= x.proveedor %><br><span class="muted"><%= x.idPasarela || '—' %></span></td>
+    <td class="small"><%= MODELOS_COBRO[x.modeloCobro]?.corto %></td>
+    <td><%- include('../partials/pill', { texto: ESTADOS_PAGO[x.estado] || x.estado, tono: { aprobado: 'ok', rechazado: 'danger', en_disputa: 'danger', contracargo: 'danger', reembolsado: 'warn', reembolso_parcial: 'warn', pendiente: 'info' }[x.estado] }) %></td>
+    <td class="num"><%= pesos(x.monto) %></td><td class="num"><%= pesos(x.comision) %></td><td class="num"><%= x.comisionPasarela ? pesos(x.comisionPasarela) : '—' %></td><td class="num"><%= x.reembolsado ? pesos(x.reembolsado) : '—' %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

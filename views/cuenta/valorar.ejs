@@ -1,0 +1,15 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <%- include('../partials/encabezado', { t: resena ? 'Editar reseña' : '¿Cómo te fue?', sub: r.foto.servicio + ' con ' + r.foto.especialista, volver: resena ? '/mi/resenas' : '/mi/reservas/' + r.id }) %>
+  <form method="post" action="<%= accion %>" class="panel stack">
+    <%- include('../partials/csrf') %>
+    <fieldset class="field"><legend>Tu valoración</legend>
+      <div class="checkgrid">
+        <% [5,4,3,2,1].forEach(n => { %><label class="check check--pill"><input type="radio" name="puntaje" value="<%= n %>" required<%= resena && resena.puntaje === n ? ' checked' : '' %>><span><%= '★'.repeat(n) %> <%= { 5: 'Excelente', 4: 'Muy bueno', 3: 'Bueno', 2: 'Regular', 1: 'Malo' }[n] %></span></label><% }) %>
+      </div>
+    </fieldset>
+    <div class="field"><label for="vc">Contá tu experiencia <span class="muted">(opcional)</span></label><textarea id="vc" name="comentario" rows="5" maxlength="2000" placeholder="¿Qué te gustó? ¿Lo recomendarías?"><%= resena ? resena.comentario : '' %></textarea><p class="field__hint">Se publica como “<%= nombrePublico(usuario) %>”, con el sello de sesión realizada.</p></div>
+    <button class="btn btn--primary btn--lg" type="submit"><%= resena ? 'Guardar cambios' : 'Publicar reseña' %></button>
+  </form>
+</div>
+<%- include('../partials/pie') %>

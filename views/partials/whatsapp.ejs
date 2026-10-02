@@ -1,0 +1,6 @@
+<%# Botón de WhatsApp del especialista. Recibe: e (especialista), wa ({visible, motivo}), mensaje %>
+<% if (wa && wa.visible) { %>
+<a class="btn btn--wa" href="<%= enlaceWhatsapp(e.whatsapp, typeof mensaje !== 'undefined' ? mensaje : `Hola ${e.nombre.split(' ')[0]}, te escribo desde Alternativa`) %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 18 }) %> WhatsApp</a>
+<% } else if (wa && wa.motivo === 'despues_reserva') { %>
+<p class="wa-hint"><%- icono('chat', { tam: 16 }) %> El WhatsApp de <%= e.nombre.split(' ')[0] %> se habilita cuando tenés una reserva confirmada. Mientras tanto, escribile por mensaje.</p>
+<% } %>

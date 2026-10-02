@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<ol class="steps"><li class="is-done"></li><li class="is-done"></li><li class="is-done"></li></ol>
+<div class="auth">
+  <h1>Completá el pago</h1>
+  <div class="panel stack" data-deadline-box>
+    <p style="margin:0"><b><%= r.foto.servicio %></b> con <%= r.foto.especialista %><br><span class="muted"><%= fFechaHora(r.inicio) %></span></p>
+    <div class="summary"><div class="summary__row summary__row--total"><span>Total</span><span><%= pesos(r.foto.total) %></span></div></div>
+    <% if (r.vencePago) { %><p class="small" style="margin:0">Te guardamos el horario por <span class="countdown" data-deadline="<%= r.vencePago %>">—</span> minutos.</p><% } %>
+    <form method="post" action="/pago/<%= r.id %>"><%- include('../partials/csrf') %><button class="btn btn--primary btn--block btn--lg" type="submit">Pagar <%= pesos(r.foto.total) %></button></form>
+    <% if (pago && pago.estado === 'rechazado') { %><p class="flash flash--error">El último intento de pago fue rechazado. Probá con otro medio.</p><% } %>
+  </div>
+  <form method="post" action="/mi/reservas/<%= r.id %>/cancelar" style="margin-top:12px" data-confirm="¿Cancelar esta reserva sin pagar? El horario se libera."><%- include('../partials/csrf') %><input type="hidden" name="motivo" value="Cancelada antes de pagar"><button class="btn btn--text" type="submit">Cancelar reserva</button></form>
+</div>
+<%- include('../partials/pie') %>

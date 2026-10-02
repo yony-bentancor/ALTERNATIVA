@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Servicios', sub: 'Cada servicio tiene su propio precio, duración y reputación.', acciones: '<a class="btn btn--primary btn--sm" href="/panel/servicios/nuevo">Nuevo servicio</a>' }) %>
+<% if (!lista.length) { %><%- include('../partials/vacio', { t: 'Todavía no creaste servicios', texto: 'Creá al menos uno con precio y duración para poder publicar tu ficha.', accion: 'Crear servicio', href: '/panel/servicios/nuevo', ic: 'layers' }) %><% } %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Servicio</th><th>Categoría</th><th class="num">Precio</th><th>Duración</th><th>Reseñas</th><th>Estado</th></tr></thead>
+  <tbody><% lista.forEach(s => { %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><img class="mini-thumb" src="<%= (s.fotos && s.fotos[0]) || '' %>" alt=""><a href="/panel/servicios/<%= s.id %>"><%= s.titulo %></a></div></td>
+    <td><%= cats.get(s.categoriaId)?.nombre %></td><td class="num"><%= pesos(s.precio) %></td><td><%= duracion(s.duracion) %></td>
+    <td><%- include('../partials/rating', { r: s.rating, compacto: true }) %></td>
+    <td><span class="pill<%= s.estado === 'activo' ? ' pill--ok' : s.estado === 'suspendido' ? ' pill--danger' : ' pill--warn' %>"><%= { activo: 'Publicado', pausado: 'Pausado', en_revision: 'En revisión', suspendido: 'Suspendido' }[s.estado] %></span></td>
+  </tr><% }) %></tbody>
+</table></div>
+<%- include('../partials/pie') %>

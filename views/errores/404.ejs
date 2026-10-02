@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<section class="errorpage">
+  <p class="errorpage__code">404</p>
+  <h1>¿Te perdiste?</h1>
+  <p class="muted"><%= typeof mensaje !== 'undefined' && mensaje ? mensaje : 'No encontramos esa página. Puede que el enlace esté mal o que el contenido ya no esté disponible.' %></p>
+  <div class="btnbar" style="justify-content:center"><a class="btn btn--primary" href="/">Ir al inicio</a><a class="btn btn--ghost" href="/buscar">Buscar servicios</a></div>
+</section>
+<%- include('../partials/pie') %>

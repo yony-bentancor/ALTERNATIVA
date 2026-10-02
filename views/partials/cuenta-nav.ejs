@@ -1,0 +1,4 @@
+<%# Menú del área del usuario. Recibe: actual %>
+<nav class="tabs" aria-label="Mi cuenta">
+  <% [['inicio','/mi','Inicio'],['reservas','/mi/reservas','Reservas'],['resenas','/mi/resenas','Reseñas'],['favoritos','/mi/favoritos','Favoritos'],['mensajes','/mi/mensajes','Mensajes'],['avisos','/mi/notificaciones','Avisos'],['perfil','/mi/perfil','Perfil'],['pagos','/mi/pagos','Pagos'],['configuracion','/mi/configuracion','Configuración'],['ayuda','/mi/ayuda','Ayuda']].forEach(([k, href, t]) => { %><a class="tabs__item<%= actual === k ? ' is-active' : '' %>" href="<%= href %>"><%= t %><% if (k === 'mensajes' && mensajesSinLeer.usuario) { %> <span class="tabs__count"><%= mensajesSinLeer.usuario %></span><% } %><% if (k === 'avisos' && avisosSinLeer) { %> <span class="tabs__count"><%= avisosSinLeer %></span><% } %></a><% }) %>
+</nav>

@@ -1,0 +1,15 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Facturación', sub: 'Resumen mensual para tu contador', volver: '/panel/ingresos' }) %>
+<% if (!meses.length) { %><%- include('../partials/vacio', { t: 'Todavía no hay movimientos', ic: 'card' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Mes</th><th class="num">Pagos</th><th class="num">Cobrado</th><th class="num">Tarifa Alternativa</th><th class="num">Pasarela</th><th class="num">Reembolsado</th><th class="num">Neto</th></tr></thead>
+  <tbody><% meses.forEach(m => { const [a, mm] = m.mes.split('-'); %><tr>
+    <td><b><%= MESES[Number(mm) - 1] %> <%= a %></b></td><td class="num"><%= m.cantidad %></td><td class="num"><%= pesos(m.bruto) %></td>
+    <td class="num">− <%= pesos(m.comision) %></td><td class="num">− <%= pesos(m.pasarela) %></td><td class="num">− <%= pesos(m.reembolsado) %></td>
+    <td class="num"><b><%= pesos(m.bruto - m.comision - m.pasarela - m.reembolsado) %></b></td>
+  </tr><% }) %></tbody>
+</table></div>
+<p class="small muted">Alternativa emite factura por su tarifa de servicio. Vos facturás al cliente el valor de tu sesión según tu régimen (completá tus datos en <a href="/panel/cuenta">Configuración</a>).</p>
+<% } %>
+<% if (liquidaciones.length) { %><section class="panel" style="margin-top:16px"><h2>Liquidaciones</h2><div class="table-wrap"><table class="table"><thead><tr><th>N.º</th><th>Período</th><th>Tipo</th><th class="num">Reservas</th><th class="num">Neto</th><th>Estado</th></tr></thead><tbody><% liquidaciones.forEach(l => { %><tr><td>#<%= l.numero %></td><td><%= fCorta(l.desde) %> – <%= fCorta(l.hasta) %></td><td class="small"><%= l.direccion === 'a_plataforma' ? 'Comisión a pagar' : 'A tu favor' %></td><td class="num"><%= l.reservas %></td><td class="num"><%= pesos(l.neto) %></td><td><span class="pill"><%= l.estado %></span><% if (l.referencia) { %><br><span class="small muted">Ref. <%= l.referencia %></span><% } %></td></tr><% }) %></tbody></table></div></section><% } %>
+<%- include('../partials/pie') %>

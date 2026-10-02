@@ -1,0 +1,10 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Preguntas frecuentes', sub: '¿No encontrás lo que buscás? Escribinos desde Contacto o por WhatsApp.' }) %>
+<div class="faq" style="max-width:760px">
+  <% Object.entries(grupos).forEach(([g, lista]) => { %>
+  <h2 style="margin-top:24px"><%= g %></h2>
+  <% lista.forEach(f => { %><details><summary><%= f.titulo %></summary><div><%- markdown(f.cuerpo) %></div></details><% }) %>
+  <% }) %>
+</div>
+<div class="btnbar"><a class="btn btn--primary" href="/contacto">Hacer una consulta</a></div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <%- include('../partials/encabezado', { t: 'Cancelar reserva', sub: r.foto.servicio + ' · ' + fFechaHora(r.inicio), volver: '/mi/reservas/' + r.id }) %>
+  <div class="panel stack">
+    <% if (r.estado === 'pendiente') { %>
+      <p style="margin:0">Esta reserva todavía no está paga: al cancelarla se libera el horario y no hay cobros.</p>
+    <% } else { %>
+      <p style="margin:0"><%= dec.texto %>.</p>
+      <div class="summary">
+        <div class="summary__row"><span>Pagaste</span><span><%= pesos(r.foto.total) %></span></div>
+        <div class="summary__row summary__row--total"><span>Te devolvemos (<%= dec.porcentaje %>%)</span><span><%= pesos(rep.monto) %></span></div>
+      </div>
+      <% if (dec.porcentaje < 100 && repro.ok) { %><p class="panel panel--blue small" style="margin:0">¿Y si reprogramás? Podés mover la sesión sin costo. <a href="/mi/reservas/<%= r.id %>/reprogramar">Elegir otro horario</a></p><% } %>
+    <% } %>
+    <form method="post" action="/mi/reservas/<%= r.id %>/cancelar" data-confirm="¿Confirmás la cancelación?">
+      <%- include('../partials/csrf') %>
+      <div class="field"><label for="cm">Motivo <span class="muted">(opcional)</span></label><textarea id="cm" name="motivo" rows="3" maxlength="500"></textarea></div>
+      <button class="btn btn--danger btn--block" type="submit">Cancelar reserva</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/pie') %>

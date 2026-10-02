@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reservas', sub: cantidad + ' reservas · ' + pesos(total) + ' en reservas efectivas' }) %>
+<form class="toolbar">
+  <div class="field"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="Código, cliente, especialista o servicio" aria-label="Buscar"></div>
+  <div class="field"><select name="estado" aria-label="Estado"><option value="">Todos los estados</option><% Object.entries(ESTADOS_RESERVA).forEach(([k, v]) => { %><option value="<%= k %>"<%= query.estado === k ? ' selected' : '' %>><%= v.texto %></option><% }) %></select></div>
+  <div class="field"><input type="date" name="desde" value="<%= query.desde || '' %>" aria-label="Desde"></div>
+  <div class="field"><input type="date" name="hasta" value="<%= query.hasta || '' %>" aria-label="Hasta"></div>
+  <label class="check"><input type="checkbox" name="incidencia" value="1"<%= query.incidencia === '1' ? ' checked' : '' %>> Con incidencia</label>
+  <% ['especialista', 'usuario', 'servicio'].forEach(k => { if (query[k]) { %><input type="hidden" name="<%= k %>" value="<%= query[k] %>"><% } }) %>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reservas con esos filtros', ic: 'calendar' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Código</th><th>Fecha</th><th>Servicio</th><th>Cliente</th><th>Especialista</th><th>Estado</th><th class="num">Total</th><th class="num">Comisión</th></tr></thead>
+  <tbody><% p.items.forEach(r => { %><tr>
+    <td><a href="/admin/reservas/<%= r.id %>"><b><%= r.codigo %></b></a><% if (r.incidencia && r.incidencia.abierta) { %><br><%- include('../partials/pill', { texto: 'Incidencia', tono: 'danger' }) %><% } %></td>
+    <td class="small"><%= fFechaHora(r.inicio) %></td><td class="small"><%= r.foto.servicio %><br><span class="muted"><%= MODALIDADES[r.modalidad]?.texto %></span></td>
+    <td class="small"><a href="/admin/usuarios/<%= r.usuarioId %>"><%= r.foto.usuario %></a></td><td class="small"><a href="/admin/especialistas/<%= r.especialistaId %>"><%= r.foto.especialista %></a></td>
+    <td><%- include('../partials/estado', { estado: r.estado }) %></td><td class="num"><%= pesos(r.foto.total) %></td><td class="num"><%= pesos(r.foto.comision) %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<% } %>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

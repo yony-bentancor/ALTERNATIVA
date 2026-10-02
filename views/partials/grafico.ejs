@@ -1,0 +1,11 @@
+<%# Gráfico de barras liviano (SVG). Recibe: serie [{fecha, ...}], campo, etiqueta, color %>
+<% if (serie && serie.length) {
+  const max = Math.max(1, ...serie.map((x) => x[campo] || 0)); const w = 100 / serie.length; const h = 120;
+  const col = typeof color !== 'undefined' ? color : 'var(--blue)'; %>
+<figure class="chart" aria-label="<%= etiqueta %>">
+  <svg viewBox="0 0 100 <%= h %>" preserveAspectRatio="none" role="img" aria-hidden="true">
+    <% serie.forEach((x, i) => { const alto = Math.max(0.5, ((x[campo] || 0) / max) * (h - 4)); %><rect x="<%= (i * w + w * 0.15).toFixed(3) %>" y="<%= (h - alto).toFixed(2) %>" width="<%= (w * 0.7).toFixed(3) %>" height="<%= alto.toFixed(2) %>" rx="0.6" fill="<%= col %>"><title><%= x.fecha %>: <%= x[campo] || 0 %></title></rect><% }) %>
+  </svg>
+  <figcaption class="chart__axis"><span><%= fFechaTexto(serie[0].fecha).split(' ').slice(1).join(' ') %></span><span><%= etiqueta %></span><span><%= fFechaTexto(serie[serie.length - 1].fecha).split(' ').slice(1).join(' ') %></span></figcaption>
+</figure>
+<% } %>

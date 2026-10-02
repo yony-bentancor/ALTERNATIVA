@@ -1,0 +1,39 @@
+<%- include('../partials/head') %>
+<% const mp = e.mercadopago || {}; const conectado = !!mp.conectado; %>
+<%- include('../partials/encabezado', { t: 'Cobros', sub: 'Cómo te llega el dinero de las reservas', volver: '/panel/cuenta' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel stack<%= conectado ? ' panel--blue' : ' panel--warn' %>">
+      <h2><%- icono(conectado ? 'checkCircle' : 'wallet', { tam: 20 }) %> Mercado Pago <%= conectado ? 'vinculado' : 'sin vincular' %></h2>
+      <% if (conectado) { %>
+        <p>Cuenta <b><%= mp.usuarioMp %></b><%= mp.simulado ? ' (cuenta de prueba)' : '' %> · vinculada <%= fFecha(mp.conectado) %>.</p>
+        <p class="small muted">Cada pago se divide en el momento: tu parte va a tu cuenta de Mercado Pago y la tarifa de Alternativa queda en la nuestra. No hay liquidaciones ni esperas.</p>
+        <form method="post" action="/panel/cuenta/cobros/desconectar" data-confirm="¿Desvincular tu cuenta? Tu ficha deja de recibir reservas pagas hasta que vincules otra."><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit">Desvincular</button></form>
+      <% } else { %>
+        <p>Vinculá tu cuenta para recibir reservas pagas en línea. <%= cfg.pagos.exigirCuentaVinculada ? 'Sin cuenta vinculada tus servicios no se pueden reservar con pago.' : 'Mientras tanto, Alternativa cobra por vos y te liquida cada ' + cfg.pagos.frecuenciaLiquidacion + ' días.' %></p>
+        <div class="row">
+          <% if (oauthListo) { %><a class="btn btn--primary" href="/panel/cuenta/cobros/mercadopago/conectar">Vincular con Mercado Pago</a><% } %>
+          <% if (!enVivo && proveedor === 'simulado') { %><form method="post" action="/panel/cuenta/cobros/simular"><%- include('../partials/csrf') %><button class="btn <%= oauthListo ? 'btn--ghost' : 'btn--primary' %>" type="submit">Vincular cuenta de prueba</button></form><% } %>
+        </div>
+        <% if (!oauthListo) { %><p class="small muted">La vinculación real requiere que administración configure <code>MP_CLIENT_ID</code> y <code>MP_CLIENT_SECRET</code>.</p><% } %>
+      <% } %>
+    </section>
+    <section class="panel"><h2>Cómo se calcula lo que recibís</h2>
+      <% const ej = 1000; const tarifa = Math.round(ej * cfg.comision.tasaGeneral / 100); const proc = Math.round((cfg.comision.modo === 'sumada' ? ej + tarifa : ej) * cfg.pagos.comisionProcesador / 100); %>
+      <div class="summary">
+        <div class="summary__row"><span>Tu precio</span><span><%= pesos(ej) %></span></div>
+        <div class="summary__row"><span><%= cfg.comision.etiqueta %> (<%= cfg.comision.tasaGeneral %>%) <%= cfg.comision.modo === 'sumada' ? '— la paga el cliente' : '— incluida en tu precio' %></span><span><%= cfg.comision.modo === 'sumada' ? '+ ' : '− ' %><%= pesos(tarifa) %></span></div>
+        <% if (cfg.pagos.procesadorPaga === 'especialista') { %><div class="summary__row"><span>Costo de Mercado Pago (aprox. <%= String(cfg.pagos.comisionProcesador).replace('.', ',') %>%)</span><span>− <%= pesos(proc) %></span></div><% } %>
+        <div class="summary__row summary__row--total"><span>Recibís aprox.</span><span><%= pesos((cfg.comision.modo === 'sumada' ? ej : ej - tarifa) - (cfg.pagos.procesadorPaga === 'especialista' ? proc : 0)) %></span></div>
+      </div>
+      <p class="small muted">Ejemplo sobre una sesión de $ 1.000. El costo real de la pasarela se registra en cada pago.</p>
+    </section>
+  </div>
+  <aside><div class="panel stack small">
+    <h3>Seguridad</h3>
+    <p>Alternativa nunca ve ni guarda datos de tarjetas. Los permisos de tu cuenta de Mercado Pago se guardan cifrados y podés revocarlos cuando quieras.</p>
+    <p>Modelo actual: <b><%= MODELOS_COBRO[cfg.pagos.modelo].corto %></b>.</p>
+    <a href="/panel/ingresos">Ver mis ingresos</a>
+  </div></aside>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,3 @@
+<%# ★ 4,9 · 127 reseñas verificadas. Recibe: r (rating {prom, cant}), compacto %>
+<% const comp = typeof compacto !== 'undefined' && compacto; %>
+<% if (r && r.cant) { %><span class="rating" aria-label="<%= fRating(r.prom) %> de 5, <%= r.cant %> reseñas"><%- icono('star', { tam: 15, clase: 'rating__star' }) %><strong><%= fRating(r.prom) %></strong><% if (comp) { %><span class="muted"> (<%= r.cant %>)</span><% } else { %> · <%= r.cant %> <%= r.cant === 1 ? 'reseña verificada' : 'reseñas verificadas' %><% } %></span><% } else { %><span class="muted small">Todavía sin reseñas</span><% } %>

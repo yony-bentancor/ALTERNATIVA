@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Soporte', sub: 'Consultas de usuarios y especialistas, incidencias y reembolsos fallidos' }) %>
+<form class="toolbar">
+  <div class="field"><select name="estado" aria-label="Estado"><option value="">Abiertas y en espera</option><% Object.entries({ abierta: 'Abiertas', esperando_usuario: 'Esperando respuesta', resuelta: 'Resueltas', cerrada: 'Cerradas' }).forEach(([k, t]) => { %><option value="<%= k %>"<%= query.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <div class="field"><select name="tema" aria-label="Tema"><option value="">Todos los temas</option><% Object.entries({ reserva: 'Reserva', pago: 'Pago', reembolso: 'Reembolso', cuenta: 'Cuenta', especialista: 'Especialista', tecnico: 'Problema técnico', otro: 'Otro' }).forEach(([k, t]) => { %><option value="<%= k %>"<%= query.tema === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay consultas acá', ic: 'help' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>N.º</th><th>Asunto</th><th>De</th><th>Tema</th><th>Prioridad</th><th>Estado</th><th>Actualizada</th></tr></thead>
+  <tbody><% p.items.forEach(t => { const u = usuarios.get(t.usuarioId); const r = rs.get(t.reservaId); %><tr>
+    <td><a href="/admin/soporte/<%= t.id %>">#<%= t.numero %></a></td>
+    <td><a href="/admin/soporte/<%= t.id %>"><%= t.asunto %></a><% if (r) { %><br><span class="small muted"><%= r.codigo %></span><% } %></td>
+    <td class="small"><%= u ? u.nombre : (t.nombre || t.email || 'Visitante') %></td>
+    <td class="small"><%= t.tema %></td>
+    <td><%- include('../partials/pill', { texto: t.prioridad, tono: { alta: 'danger', normal: '', baja: 'info' }[t.prioridad] }) %></td>
+    <td><%- include('../partials/pill', { texto: { abierta: 'Abierta', esperando_usuario: 'Esperando', resuelta: 'Resuelta', cerrada: 'Cerrada' }[t.estado], tono: { abierta: 'warn', resuelta: 'ok' }[t.estado] }) %></td>
+    <td class="small"><%= fRelativa(t.actualizado || t.creado) %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<% } %>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

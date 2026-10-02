@@ -1,0 +1,11 @@
+<%# Tarjeta de reserva para listas. Recibe: r, base ('/mi/reservas' o '/panel/reservas'), quien ('especialista'|'usuario') %>
+<% const p = new Date(r.inicio); const dia = fFecha(r.inicio).split(' '); const pasada = ['realizada','ausencia_usuario','ausencia_especialista'].includes(r.estado) || ['cancelada_usuario','cancelada_especialista','reembolsada','vencida','reprogramada'].includes(r.estado); %>
+<a class="booking-card" href="<%= base %>/<%= r.id %>">
+  <div class="datebox<%= pasada ? ' datebox--muted' : '' %>"><div class="datebox__d"><%= dia[1] %></div><div class="datebox__m"><%= (dia[3] || '').slice(0, 3) %></div></div>
+  <div class="list-row__main">
+    <p class="list-row__title"><%= r.foto.servicio %></p>
+    <p class="list-row__sub"><%= quien === 'usuario' ? r.foto.usuario : r.foto.especialista %> · <%= fHora(r.inicio) %> h · <%= MODALIDADES[r.modalidad]?.texto %></p>
+    <p class="list-row__sub" style="margin-top:6px"><%- include('estado', { estado: r.estado }) %><% if (r.incidencia?.abierta) { %> <span class="pill pill--danger">Incidencia</span><% } %></p>
+  </div>
+  <div class="price small"><%= pesos(quien === 'usuario' ? r.foto.netoEspecialista : r.foto.total) %></div>
+</a>

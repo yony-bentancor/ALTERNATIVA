@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<article class="prose">
+  <h1>Política de cancelaciones</h1>
+  <p class="muted" style="font-size:1.1rem">Cuándo y cuánto se reembolsa si cancelás o reprogramás.</p>
+  <div class="panel panel--blue" style="margin:16px 0"><ul class="checklist"><% reglas.forEach(r => { %><li><span><%- icono('check', { tam: 18 }) %><%= r %></span></li><% }) %></ul></div>
+  <% if (pagina) { %><%- markdown(pagina.cuerpo) %><% } %>
+</article>
+<%- include('../partials/pie') %>

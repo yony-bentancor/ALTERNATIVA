@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<div class="pagehead">
+  <a class="pagehead__back" href="/admin/usuarios" aria-label="Volver"><%- icono('arrowLeft') %></a>
+  <% if (u.avatar) { %><img class="avatar avatar--lg" src="<%= u.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= u.nombre[0] %></span><% } %>
+  <div class="pagehead__text"><h1><%= u.nombre %></h1><p class="muted"><%= u.email %> · <%= ROLES[u.rol] %> · alta <%= fFecha(u.creado) %></p></div>
+  <div class="pagehead__actions"><%- include('../partials/pill', { texto: u.estado, tono: u.estado === 'activo' ? 'ok' : 'danger' }) %></div>
+</div>
+<% if (u.estado === 'suspendido' && u.suspension) { %><div class="flash flash--error"><%- icono('ban', { tam: 18 }) %><span>Suspendida el <%= fFecha(u.suspension.fecha) %>: <%= u.suspension.motivo %></span></div><% } %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas', valor: rs.length }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Pagado', valor: pesos(pagosTotal) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reseñas', valor: resenas.length }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Consultas', valor: consultas.length }) %>
+</div>
+<div class="layout-aside" style="margin-top:16px">
+  <div class="stack-lg">
+    <% if (ficha) { %><p class="panel panel--blue small">Administra la ficha <a href="/admin/especialistas/<%= ficha.id %>"><b><%= ficha.nombre %></b></a> (<%= ESTADOS_ESPECIALISTA[ficha.estado] %>).</p><% } %>
+    <section class="panel"><div class="panel__title"><h2>Reservas</h2><a href="/admin/reservas?usuario=<%= u.id %>">Ver todas</a></div>
+      <% if (!rs.length) { %><p class="muted">Sin reservas.</p><% } else { %><div class="table-wrap"><table class="table"><thead><tr><th>Código</th><th>Servicio</th><th>Fecha</th><th>Estado</th><th class="num">Total</th></tr></thead><tbody>
+      <% rs.slice(0, 15).forEach(r => { %><tr><td><a href="/admin/reservas/<%= r.id %>"><%= r.codigo %></a></td><td class="small"><%= r.foto.servicio %><br><span class="muted"><%= r.foto.especialista %></span></td><td class="small"><%= fFechaHora(r.inicio) %></td><td><%- include('../partials/estado', { estado: r.estado }) %></td><td class="num"><%= pesos(r.foto.total) %></td></tr><% }) %>
+      </tbody></table></div><% } %>
+    </section>
+    <section class="panel"><h2>Consultas de soporte</h2><% if (!consultas.length) { %><p class="muted">Sin consultas.</p><% } %><ul class="list"><% consultas.forEach(t => { %><li><a href="/admin/soporte/<%= t.id %>">#<%= t.numero %> · <%= t.asunto %></a> <span class="small muted">· <%= t.estado %> · <%= fRelativa(t.creado) %></span></li><% }) %></ul></section>
+    <section class="panel"><h2>Reseñas escritas</h2><% if (!resenas.length) { %><p class="muted">Sin reseñas.</p><% } %><% resenas.forEach(r => { %><article class="review"><div class="review__head"><span><%= r.estado %></span><%- include('../partials/estrellas', { n: r.puntaje, tam: 14 }) %></div><p class="review__body small"><%= r.comentario %></p></article><% }) %></section>
+    <% if (denunciasSobre.length || denunciasHechas.length) { %><section class="panel"><h2>Denuncias</h2><p class="small">Sobre esta cuenta: <b><%= denunciasSobre.length %></b> · Hechas por esta cuenta: <b><%= denunciasHechas.length %></b></p></section><% } %>
+    <section class="panel"><h2>Actividad</h2><% if (!registros.length) { %><p class="muted">Sin registros.</p><% } %><ul class="list small"><% registros.forEach(a => { %><li><b><%= a.accion %></b> · <%= a.actor %> · <span class="muted"><%= fFechaHora(a.creado) %></span></li><% }) %></ul></section>
+  </div>
+  <aside class="stack">
+    <form class="panel stack" method="post" action="/admin/usuarios/<%= u.id %>"><%- include('../partials/csrf') %>
+      <h3>Datos</h3>
+      <div class="field"><label for="u-n">Nombre</label><input id="u-n" name="nombre" value="<%= u.nombre %>" required></div>
+      <div class="field"><label for="u-t">Celular</label><input id="u-t" name="telefono" value="<%= u.telefono || '' %>"></div>
+      <div class="field"><label for="u-r">Rol</label><select id="u-r" name="rol"><% Object.entries(ROLES).forEach(([k, t]) => { %><option value="<%= k %>"<%= u.rol === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+      <label class="check"><input type="checkbox" name="emailVerificado" value="1"<%= u.emailVerificado ? ' checked' : '' %>> Email verificado</label>
+      <button class="btn btn--primary btn--sm" type="submit">Guardar</button>
+    </form>
+    <% if (u.id !== usuario.id) { %>
+    <form class="panel stack" method="post" action="/admin/usuarios/<%= u.id %>/estado"<%- u.estado === 'activo' ? ' data-confirm="¿Suspender la cuenta? Se cierran sus sesiones."' : '' %>><%- include('../partials/csrf') %>
+      <h3><%= u.estado === 'activo' ? 'Suspender cuenta' : 'Reactivar cuenta' %></h3>
+      <% if (u.estado === 'activo') { %><input type="hidden" name="estado" value="suspendido"><div class="field"><textarea name="motivo" rows="2" required minlength="5" placeholder="Motivo"></textarea></div><button class="btn btn--danger btn--sm" type="submit">Suspender</button>
+      <% } else { %><input type="hidden" name="estado" value="activo"><button class="btn btn--primary btn--sm" type="submit">Reactivar</button><% } %>
+    </form>
+    <% } %>
+    <% if (u.telefono) { %><a class="btn btn--wa btn--sm" href="<%= enlaceWhatsapp(u.telefono, 'Hola ' + u.nombre.split(' ')[0] + ', te escribimos de Alternativa') %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 16 }) %> WhatsApp</a><% } %>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

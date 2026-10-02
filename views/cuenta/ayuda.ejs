@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Ayuda', sub: 'Escribinos y te respondemos acá y por email.' }) %>
+<% if (area !== 'panel') { %><%- include('../partials/cuenta-nav', { actual: 'ayuda' }) %><% } %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel"><h2>Mis consultas</h2>
+      <% if (!consultas.length) { %><p class="muted">No tenés consultas.</p><% } %>
+      <ul class="list"><% consultas.forEach(t => { %><li><a class="list-row" href="<%= base %>/<%= t.id %>"><div class="list-row__main"><p class="list-row__title">#<%= t.numero %> · <%= t.asunto %></p><p class="list-row__sub"><%= temas[t.tema] %> · <%= fRelativa(t.actualizado || t.creado) %></p></div><span class="pill<%= t.estado === 'esperando_usuario' ? ' pill--warn' : t.estado === 'resuelta' ? ' pill--ok' : ' pill--info' %>"><%= { abierta: 'Abierta', esperando_usuario: 'Te respondimos', resuelta: 'Resuelta', cerrada: 'Cerrada' }[t.estado] %></span></a></li><% }) %></ul>
+    </section>
+    <form method="post" action="<%= base %>" class="panel">
+      <%- include('../partials/csrf') %>
+      <h2>Nueva consulta</h2>
+      <div class="grid-2"><div class="field"><label for="ay-t">Tema</label><select id="ay-t" name="tema"><% Object.entries(temas).forEach(([k, v]) => { %><option value="<%= k %>"><%= v %></option><% }) %></select></div>
+      <div class="field"><label for="ay-r">Reserva <span class="muted">(opcional)</span></label><select id="ay-r" name="reservaId"><option value="">—</option><% mias.forEach(r => { %><option value="<%= r.id %>"><%= r.codigo %> · <%= r.foto.servicio %> · <%= fCorta(r.inicio) %></option><% }) %></select></div></div>
+      <div class="field"><label for="ay-a">Asunto</label><input id="ay-a" name="asunto" required maxlength="200"></div>
+      <div class="field"><label for="ay-m">Mensaje</label><textarea id="ay-m" name="mensaje" rows="5" required minlength="10"></textarea></div>
+      <button class="btn btn--primary" type="submit">Enviar</button>
+    </form>
+  </div>
+  <aside>
+    <div class="panel faq"><h3>Preguntas frecuentes</h3><% faqs.forEach(f => { %><details><summary><%= f.titulo %></summary><div><%- markdown(f.cuerpo) %></div></details><% }) %><p class="small"><a href="/preguntas-frecuentes">Ver todas</a></p></div>
+    <% if (cfg.sitio.whatsappSoporte) { %><a class="btn btn--wa btn--block" style="margin-top:12px" href="<%= enlaceWhatsapp(cfg.sitio.whatsappSoporte, 'Hola, necesito ayuda con Alternativa') %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 18 }) %> Soporte por WhatsApp</a><% } %>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

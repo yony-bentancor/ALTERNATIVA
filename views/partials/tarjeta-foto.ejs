@@ -1,0 +1,21 @@
+<%# Tarjeta con foto grande (inicio, categorías). Recibe: t, favoritos %>
+<% const s = t.servicio, e = t.especialista; const fav = (typeof favoritos !== 'undefined' && favoritos) ? favoritos.has(s.id) : false; %>
+<article class="card">
+  <div class="card__img">
+    <img src="<%= (s.fotos && s.fotos[0]) || e.portada || t.categoria.imagen %>" alt="" loading="lazy" decoding="async">
+    <% if (t.patrocinado) { %><span class="badge badge--sponsored">Patrocinado</span><% } else if (t.nuevo) { %><span class="badge badge--new"><%- icono('sparkle', { tam: 14 }) %>Nuevo</span><% } %>
+  </div>
+  <% if (usuario) { %><button type="button" class="fav<%= fav ? ' is-on' : '' %>" data-fav="servicio" data-id="<%= s.id %>" aria-pressed="<%= fav ? 'true' : 'false' %>" aria-label="<%= fav ? 'Quitar de favoritos' : 'Guardar en favoritos' %>"><%- icono('heart', { tam: 20 }) %></button><% } %>
+  <div class="card__body">
+    <h3><a href="/servicios/<%= e.slug %>/<%= s.slug %><%= t.destacadoId ? '?ad=' + t.destacadoId : '' %>"><%= s.titulo %></a></h3>
+    <div class="card__who">
+      <% if (e.avatar) { %><img class="avatar avatar--sm" src="<%= e.avatar %>" alt="" loading="lazy"><% } else { %><span class="avatar avatar--sm avatar--initial"><%= e.nombre[0] %></span><% } %>
+      <span><%= e.nombre %><% if (t.verificado) { %> <%- icono('shield', { tam: 14, clase: 'result__verified', etiqueta: 'Identidad verificada' }) %><% } %></span>
+    </div>
+    <div class="muted small"><%= [e.ubicacion?.barrio, e.ubicacion?.ciudad].filter(Boolean).join(', ') %></div>
+    <div class="card__foot">
+      <span class="price"><%= pesos(t.precio) %></span>
+      <%- include('rating', { r: s.rating, compacto: true }) %>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,34 @@
+<%- include('../partials/head') %>
+<% const f = e.facturacion || {}; const aj = e.ajustes || {}; %>
+<%- include('../partials/encabezado', { t: 'Configuración', sub: 'Reservas, facturación y cobros', acciones: '<a class="btn btn--ghost btn--sm" href="/panel/cuenta/cobros">Cobros</a>' }) %>
+<form class="stack-lg" method="post" action="/panel/cuenta" style="max-width:720px">
+  <%- include('../partials/csrf') %>
+  <section class="panel stack">
+    <h2>Reservas</h2>
+    <label class="check"><input type="checkbox" name="autoConfirmar" value="1"<%= aj.autoConfirmar ? ' checked' : '' %>> <span><b>Confirmar automáticamente</b><br><span class="small muted">Las reservas pagas quedan confirmadas sin que tengas que aprobarlas.</span></span></label>
+    <label class="check"><input type="checkbox" name="permitirReprogramar" value="1"<%= aj.permitirReprogramar !== false ? ' checked' : '' %>> <span><b>Permitir que el cliente reprograme</b><br><span class="small muted">Dentro de los plazos de la política de cancelación.</span></span></label>
+  </section>
+  <section class="panel stack">
+    <h2>Datos de facturación</h2>
+    <div class="grid-2">
+      <div class="field"><label for="f-rs">Nombre o razón social</label><input id="f-rs" name="razonSocial" value="<%= f.razonSocial || '' %>" maxlength="160"></div>
+      <div class="field"><label for="f-rut">RUT</label><input id="f-rut" name="rut" value="<%= f.rut || '' %>" maxlength="20" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label for="f-t">Régimen</label><select id="f-t" name="tipo"><% [['', 'Elegí'], ['monotributo', 'Monotributo'], ['literal_e', 'Literal E'], ['empresa', 'Empresa (IRAE)'], ['otro', 'Otro']].forEach(([k, t]) => { %><option value="<%= k %>"<%= f.tipo === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  </section>
+  <section class="panel stack">
+    <h2>Dónde recibís liquidaciones</h2>
+    <p class="small muted">Solo se usa cuando Alternativa cobra por vos (sin Mercado Pago vinculado). Con Mercado Pago vinculado el dinero te llega directo.</p>
+    <div class="field"><label for="f-m">Método</label><select id="f-m" name="metodo"><% [['', 'Elegí'], ['banco', 'Transferencia bancaria'], ['mercadopago', 'Cuenta de Mercado Pago']].forEach(([k, t]) => { %><option value="<%= k %>"<%= f.metodo === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+    <div class="grid-2">
+      <div class="field"><label for="f-b">Banco</label><input id="f-b" name="banco" value="<%= f.banco || '' %>" placeholder="BROU, Itaú, Santander…"></div>
+      <div class="field"><label for="f-ti">Titular</label><input id="f-ti" name="titular" value="<%= f.titular || '' %>"></div>
+      <div class="field"><label for="f-c">N.º de cuenta</label><input id="f-c" name="cuenta" value="<%= f.cuenta || '' %>"></div>
+      <div class="field"><label for="f-tc">Tipo de cuenta</label><input id="f-tc" name="tipoCuenta" value="<%= f.tipoCuenta || '' %>" placeholder="Caja de ahorro en pesos"></div>
+    </div>
+    <div class="field"><label for="f-e">Correo para avisos de liquidación</label><input id="f-e" type="email" name="email" value="<%= f.email || '' %>"></div>
+  </section>
+  <div><button class="btn btn--primary" type="submit">Guardar cambios</button></div>
+</form>
+<section class="panel" style="margin-top:16px;max-width:720px"><h2>Tu cuenta personal</h2><p class="muted small">Correo, contraseña, avisos y privacidad se manejan desde tu cuenta de usuario.</p><div class="row"><a class="btn btn--ghost btn--sm" href="/mi/perfil">Datos personales</a><a class="btn btn--ghost btn--sm" href="/mi/configuracion">Avisos y contraseña</a><a class="btn btn--ghost btn--sm" href="/panel/ayuda">Ayuda</a></div></section>
+<%- include('../partials/pie') %>

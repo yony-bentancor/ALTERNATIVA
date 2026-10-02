@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: editando ? 'Editar contenido' : 'Nuevo contenido', sub: { articulo: 'Artículo del blog', faq: 'Pregunta frecuente', pagina: 'Página' }[d.tipo], volver: '/admin/contenido?tipo=' + d.tipo }) %>
+<% if (errores.length) { %><div class="flash flash--error" role="alert"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+<form method="post" action="<%= editando ? '/admin/contenido/' + editando : '/admin/contenido' %>" class="layout-aside"><%- include('../partials/csrf') %>
+  <div class="panel stack">
+    <input type="hidden" name="tipo" value="<%= d.tipo %>">
+    <div class="field"><label for="ct-t"><%= d.tipo === 'faq' ? 'Pregunta' : 'Título' %></label><input id="ct-t" name="titulo" value="<%= d.titulo || '' %>" required maxlength="200"></div>
+    <% if (d.tipo !== 'faq') { %><div class="field"><label for="ct-r">Resumen</label><textarea id="ct-r" name="resumen" rows="2" maxlength="400"><%= d.resumen || '' %></textarea></div><% } %>
+    <div class="field"><label for="ct-c"><%= d.tipo === 'faq' ? 'Respuesta' : 'Contenido' %></label><textarea id="ct-c" name="cuerpo" rows="16" required><%= d.cuerpo || '' %></textarea><p class="field__hint">Formato simple: **negrita**, *cursiva*, ## Subtítulo, - listas, [enlace](https://…), líneas en blanco entre párrafos.</p></div>
+  </div>
+  <aside class="stack">
+    <div class="panel stack">
+      <div class="field"><label for="ct-e">Estado</label><select id="ct-e" name="estado"><option value="borrador">Borrador</option><option value="publicado"<%= d.estado === 'publicado' ? ' selected' : '' %>>Publicado</option></select></div>
+      <div class="field"><label for="ct-s">Enlace</label><input id="ct-s" name="slug" value="<%= d.slug || '' %>" placeholder="se genera del título"></div>
+      <div class="field"><label for="ct-ca"><%= d.tipo === 'faq' ? 'Sección' : 'Categoría' %></label><input id="ct-ca" name="categoria" value="<%= d.categoria || '' %>" placeholder="<%= d.tipo === 'faq' ? 'Reservas, Pagos…' : 'Bienestar, Terapias…' %>"></div>
+      <div class="field"><label for="ct-pu">Para</label><select id="ct-pu" name="publico"><% [['todos', 'Todos'], ['usuarios', 'Usuarios'], ['especialistas', 'Especialistas']].forEach(([k, t]) => { %><option value="<%= k %>"<%= d.publico === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+      <div class="field"><label for="ct-o">Orden</label><input id="ct-o" name="orden" type="number" min="0" max="999" value="<%= d.orden || 0 %>"></div>
+      <% if (d.tipo === 'articulo') { %>
+      <div class="field"><label for="ct-p">Portada (dirección)</label><input id="ct-p" name="portada" value="<%= d.portada || '' %>"></div>
+      <% if (d.portada) { %><img class="cover-preview" src="<%= d.portada %>" alt=""><% } %>
+      <div class="field"><label for="ct-et">Etiquetas</label><input id="ct-et" name="etiquetas" value="<%= d.etiquetas || '' %>" placeholder="estrés, espalda"></div>
+      <% } %>
+      <div class="field"><label for="ct-st">Título SEO</label><input id="ct-st" name="seoTitulo" value="<%= d.seoTitulo || '' %>" maxlength="70"></div>
+      <div class="field"><label for="ct-sd">Descripción SEO</label><input id="ct-sd" name="seoDescripcion" value="<%= d.seoDescripcion || '' %>" maxlength="160"></div>
+      <button class="btn btn--primary" type="submit"><%= editando ? 'Guardar' : 'Crear' %></button>
+    </div>
+  </aside>
+</form>
+<%- include('../partials/pie') %>

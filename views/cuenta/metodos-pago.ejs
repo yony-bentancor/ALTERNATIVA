@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <%- include('../partials/encabezado', { t: 'Métodos de pago', volver: '/mi/perfil' }) %>
+  <p class="muted">Pagás cada reserva en Mercado Pago (tarjetas de crédito y débito, dinero en cuenta y otros medios). Si guardás una tarjeta en Mercado Pago, acá ves solo una referencia: Alternativa nunca guarda los datos de la tarjeta.</p>
+  <ul class="list panel">
+    <% (usuario.metodosPago || []).forEach(m => { %>
+    <li class="list-row"><%- icono('card') %><div class="list-row__main"><p class="list-row__title"><%= m.etiqueta %></p><p class="list-row__sub"><%= m.predeterminado ? 'Predeterminado' : '' %></p></div>
+      <form method="post" action="/mi/metodos-de-pago/quitar" data-confirm="¿Quitar este medio de pago?"><%- include('../partials/csrf') %><input type="hidden" name="id" value="<%= m.id %>"><button class="btn btn--text btn--sm" type="submit">Quitar</button></form></li>
+    <% }) %>
+    <% if (!(usuario.metodosPago || []).length) { %><li class="muted">No tenés medios de pago guardados.</li><% } %>
+  </ul>
+  <p class="small" style="margin-top:12px"><a href="/mi/pagos">Ver historial de pagos</a></p>
+</div>
+<%- include('../partials/pie') %>

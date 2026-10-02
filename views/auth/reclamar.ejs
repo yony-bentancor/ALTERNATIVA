@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <% if (error) { %>
+    <%- include('../partials/vacio', { t: 'No pudimos abrir la invitación', texto: error, accion: 'Escribinos', href: '/contacto', ic: 'alert' }) %>
+  <% } else { %>
+    <h1>Reclamá tu perfil</h1>
+    <div class="panel" style="display:flex;gap:14px;align-items:center;margin:12px 0">
+      <% if (e.avatar) { %><img class="avatar avatar--lg" src="<%= e.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= e.nombre[0] %></span><% } %>
+      <div><strong><%= e.nombre %></strong><p class="muted small" style="margin:0"><%= e.titular %></p></div>
+    </div>
+    <p>Alternativa creó esta ficha para que puedas sumarte. Al reclamarla vas a poder editar tus servicios, precios y agenda, y empezar a recibir reservas.</p>
+    <p class="small muted">Después te vamos a pedir que verifiques tu identidad con un documento.</p>
+    <% if (usuario) { %>
+      <form method="post" action="/reclamar/<%= token %>"><%- include('../partials/csrf') %><button class="btn btn--primary btn--block btn--lg" type="submit">Reclamar con mi cuenta (<%= usuario.email %>)</button></form>
+    <% } else { %>
+      <div class="btnbar"><a class="btn btn--primary" href="/registro?tipo=usuario">Crear cuenta</a><a class="btn btn--ghost" href="/ingresar">Ya tengo cuenta</a></div>
+      <p class="small muted">Cuando ingreses, volvés a esta página para terminar.</p>
+    <% } %>
+  <% } %>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,6 @@
+<%# Encabezado de página. Recibe: t (título), sub, volver, acciones (html) %>
+<div class="pagehead">
+  <% if (typeof volver !== 'undefined' && volver) { %><a class="pagehead__back" href="<%= volver %>" aria-label="Volver"><%- icono('arrowLeft') %></a><% } %>
+  <div class="pagehead__text"><h1><%= t %></h1><% if (typeof sub !== 'undefined' && sub) { %><p class="muted"><%= sub %></p><% } %></div>
+  <% if (typeof acciones !== 'undefined' && acciones) { %><div class="pagehead__actions"><%- acciones %></div><% } %>
+</div>

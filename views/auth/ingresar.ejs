@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+<div class="auth auth--demo">
+  <form class="panel" method="post" action="/ingresar">
+    <%- include('../partials/csrf') %>
+    <h1>Ingresar</h1>
+    <p class="muted">Usá tu cuenta de Alternativa.</p>
+    <div class="field"><label for="lg-e">Correo electrónico</label><input id="lg-e" name="email" type="email" required autocomplete="username" inputmode="email" value="<%= email %>"></div>
+    <div class="field"><label for="lg-p">Contraseña</label><input id="lg-p" name="clave" type="password" required autocomplete="current-password"></div>
+    <button class="btn btn--primary btn--block" type="submit">Ingresar</button>
+    <p class="auth__alt"><a href="/recuperar">Olvidé mi contraseña</a> · <a href="/registro">Crear una cuenta</a></p>
+  </form>
+  <% if (prueba.length) { %>
+  <section class="panel panel--soft">
+    <h2>Usuarios de prueba</h2>
+    <p class="small muted">Todos usan la contraseña <b><%= claveDemo %></b>. Tocá <b>Entrar</b> para ingresar directo con cada rol.</p>
+    <div class="demo-cuentas">
+      <% prueba.forEach(u => { %>
+      <form class="demo-cuenta" method="post" action="/ingresar">
+        <%- include('../partials/csrf') %>
+        <input type="hidden" name="email" value="<%= u.email %>"><input type="hidden" name="clave" value="<%= claveDemo %>">
+        <% if (u.avatar) { %><img class="avatar avatar--md" src="<%= u.avatar %>" alt=""><% } else { %><span class="avatar avatar--md avatar--initial"><%= iniciales(u) %></span><% } %>
+        <div class="demo-cuenta__txt"><span class="rol-tag rol-tag--<%= u.rol %>"><%= ROLES[u.rol] %></span><b><%= u.prueba %></b><span><%= u.nombre %> · <%= u.email %></span></div>
+        <button class="btn btn--sm" type="submit">Entrar</button>
+      </form>
+      <% }) %>
+    </div>
+    <p class="small muted" style="margin-top:10px">Para ocultar esta lista en producción, poné <span class="code">MODO_DEMO=false</span> en las variables de entorno.</p>
+  </section>
+  <% } %>
+</div>
+<%- include('../partials/pie') %>

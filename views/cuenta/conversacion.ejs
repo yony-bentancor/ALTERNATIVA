@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<%# Conversación (compartida por usuario y especialista). Recibe: c, msjs, otro {nombre, avatar, enlace}, accion, volver, permitido, wa, e, proxima %>
+<div class="pagehead">
+  <a class="pagehead__back" href="<%= volver %>" aria-label="Volver"><%- icono('arrowLeft') %></a>
+  <% if (otro.avatar) { %><img class="avatar avatar--md" src="<%= otro.avatar %>" alt=""><% } else { %><span class="avatar avatar--md avatar--initial"><%= otro.nombre[0] %></span><% } %>
+  <div class="pagehead__text"><h1 style="font-size:1.2rem"><%= otro.nombre %></h1><% if (otro.enlace) { %><a class="small" href="<%= otro.enlace %>"><%= area === 'panel' ? 'Ver cliente' : 'Ver ficha' %></a><% } %></div>
+  <div class="pagehead__actions"><% if (typeof wa !== 'undefined' && wa && wa.visible) { %><%- include('../partials/whatsapp', { e, wa }) %><% } else if (typeof telefonoCliente !== 'undefined' && telefonoCliente) { %><a class="btn btn--wa btn--sm" href="<%= enlaceWhatsapp(telefonoCliente, 'Hola, te escribo desde Alternativa') %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 16 }) %> WhatsApp</a><% } %></div>
+</div>
+<% if (typeof proxima !== 'undefined' && proxima) { %><p class="notice">Próxima sesión: <b><%= proxima.foto.servicio %></b> · <%= fFechaHora(proxima.inicio) %> · <a href="<%= area === 'panel' ? '/panel/reservas/' : '/mi/reservas/' %><%= proxima.id %>">ver reserva</a></p><% } %>
+<% if (!permitido) { %><p class="notice"><%- icono('lock', { tam: 14 }) %> Los teléfonos y correos se muestran después de la primera reserva. Reservar por Alternativa te protege con reembolsos y reseñas verificadas.</p><% } %>
+<div class="thread panel" data-thread="<%= c.id %>" data-last="<%= msjs.length ? msjs[msjs.length - 1].creado : '' %>" aria-live="polite">
+  <% if (!msjs.length) { %><p class="thread__day">Escribí tu primera consulta</p><% } %>
+  <% let dia = ''; msjs.forEach(m => { const d = fFecha(m.creado); if (d !== dia) { dia = d; %><span class="thread__day"><%= d %></span><% } %>
+  <div class="bubble <%= m.autorId === usuario.id ? 'bubble--me' : 'bubble--them' %>"><%= m.visible %><span class="bubble__time"><%= fHora(m.creado) %></span></div>
+  <% }) %>
+</div>
+<% if (c.estado !== 'bloqueada') { %>
+<form class="composer" method="post" action="<%= accion %>" data-composer="<%= c.id %>">
+  <%- include('../partials/csrf') %>
+  <textarea name="texto" rows="1" required maxlength="2000" placeholder="Escribí un mensaje…" aria-label="Mensaje"></textarea>
+  <button class="btn btn--primary" type="submit" aria-label="Enviar"><%- icono('send', { tam: 18 }) %></button>
+</form>
+<p class="notice" data-notice hidden></p>
+<% } else { %><p class="notice">Esta conversación está bloqueada.</p><% } %>
+<%- include('../partials/pie') %>

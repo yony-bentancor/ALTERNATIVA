@@ -1,0 +1,43 @@
+<header class="topbar topbar--<%= area %>">
+  <div class="topbar__inner">
+    <a class="logo" href="<%= area === 'panel' ? '/panel' : area === 'admin' ? '/admin' : '/' %>" aria-label="Alternativa, inicio"><span class="logo__mark" aria-hidden="true"></span><span class="logo__word">alternativa</span></a>
+    <% if (area === 'panel') { %><span class="area-tag">Panel</span><% } else if (area === 'admin') { %><span class="area-tag area-tag--admin">Admin · <%= entorno %></span><% } %>
+    <% if (area === 'publico' || area === 'cuenta') { %>
+    <form class="topsearch hide-sm" action="/buscar" role="search">
+      <%- icono('search', { tam: 18 }) %><input type="search" name="q" placeholder="Masaje hoy, reiki online…" value="<%= ruta === '/buscar' ? (query.q || '') : '' %>" aria-label="Buscar servicios">
+    </form>
+    <% } %>
+    <nav class="topnav" aria-label="Principal">
+      <% if (area === 'publico' || area === 'cuenta') { %>
+        <a class="topnav__link hide-sm" href="/categorias">Categorías</a>
+        <% if (!usuario || !usuario.especialistaId) { %><a class="topnav__link topnav__link--quiet hide-sm" href="/ofrecer">Ofrecé tus servicios</a><% } %>
+      <% } else { %>
+        <a class="topnav__link hide-sm" href="/">Ver sitio</a>
+      <% } %>
+      <% if (usuario) { %>
+        <% if (usuario.especialistaId && area !== 'panel') { %><a class="topnav__link hide-sm" href="/panel">Mi panel</a><% } %>
+        <% if (usuario.rol === 'admin' && area !== 'admin') { %><a class="topnav__link hide-sm" href="/admin">Administración</a><% } %>
+        <a class="iconbtn" href="<%= area === 'panel' ? '/panel/notificaciones' : area === 'admin' ? '/admin/notificaciones' : '/mi/notificaciones' %>" aria-label="Avisos<%= avisosSinLeer ? ' (' + avisosSinLeer + ' sin leer)' : '' %>"><%- icono('bell') %><% if (avisosSinLeer) { %><span class="dot"><%= avisosSinLeer > 9 ? '9+' : avisosSinLeer %></span><% } %></a>
+        <details class="menu">
+          <summary class="menu__trigger" aria-label="Menú de cuenta">
+            <% if (usuario.avatar) { %><img class="avatar avatar--sm" src="<%= usuario.avatar %>" alt=""><% } else { %><span class="avatar avatar--sm avatar--initial" aria-hidden="true"><%= iniciales(usuario) %></span><% } %>
+            <span class="hide-sm"><%= primerNombre(usuario) %></span><%- icono('chevronDown', { tam: 16 }) %>
+          </summary>
+          <div class="menu__panel">
+            <a href="/mi">Mi cuenta</a>
+            <a href="/mi/reservas">Mis reservas</a>
+            <a href="/mi/favoritos">Favoritos</a>
+            <a href="/mi/mensajes">Mensajes<% if (mensajesSinLeer.usuario) { %> <span class="pill pill--brand"><%= mensajesSinLeer.usuario %></span><% } %></a>
+            <% if (usuario.especialistaId) { %><a href="/panel">Panel de especialista</a><% } else { %><a href="/ofrecer">Ofrecer mis servicios</a><% } %>
+            <% if (usuario.rol === 'admin') { %><a href="/admin">Administración</a><% } %>
+            <a href="/mi/configuracion">Configuración</a>
+            <form method="post" action="/salir"><input type="hidden" name="_csrf" value="<%= csrf %>"><button type="submit" class="menu__logout"><%- icono('logout', { tam: 18 }) %> Salir</button></form>
+          </div>
+        </details>
+      <% } else { %>
+        <a class="topnav__link" href="/ingresar">Ingresar</a>
+        <a class="btn btn--primary btn--sm" href="/registro">Crear cuenta</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

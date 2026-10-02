@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reembolsos' }) %>
+<nav class="chips" style="margin-bottom:12px"><a class="chip<%= !query.estado ? ' is-active' : '' %>" href="/admin/reembolsos">Todos</a><% [['fallido', 'Fallidos'], ['pendiente', 'Pendientes'], ['manual', 'Gestión manual'], ['procesado', 'Procesados']].forEach(([k, t]) => { %><a class="chip<%= query.estado === k ? ' is-active' : '' %>" href="?estado=<%= k %>"><%= t %> (<%= conteo[k] || 0 %>)</a><% }) %></nav>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reembolsos acá', ic: 'repeat' }) %><% } %>
+<div class="stack"><% p.items.forEach(rb => { const r = rs.get(rb.reservaId); %>
+  <article class="panel<%= rb.estado === 'fallido' ? ' panel--warn' : '' %>">
+    <div class="row row--between"><span><b><%= pesos(rb.monto) %></b> (<%= rb.porcentaje %>%) · <% if (r) { %><a href="/admin/reservas/<%= r.id %>"><%= r.codigo %></a> · <%= r.foto.usuario %> → <%= r.foto.especialista %><% } %></span><%- include('../partials/pill', { texto: { pendiente: 'Pendiente', procesado: 'Procesado', fallido: 'Fallido', manual: 'Gestión manual' }[rb.estado], tono: { procesado: 'ok', fallido: 'danger', manual: 'warn' }[rb.estado] }) %></div>
+    <p class="small muted"><%= fFechaHora(rb.creado) %> · iniciado por <%= rb.rolIniciador %> · <%= rb.motivo || '' %> · comisión revertida <%= pesos(rb.comisionRevertida || 0) %></p>
+    <% if (rb.error) { %><p class="small" style="color:var(--danger)"><%= rb.error %></p><% } %>
+    <% if (['fallido', 'pendiente', 'manual'].includes(rb.estado)) { %>
+    <div class="row">
+      <% if (rb.estado !== 'manual') { %><form method="post" action="/admin/reembolsos/<%= rb.id %>/reintentar"><%- include('../partials/csrf') %><button class="btn btn--primary btn--sm" type="submit"><%- icono('repeat', { tam: 16 }) %> Reintentar en la pasarela</button></form><% } %>
+      <form method="post" action="/admin/reembolsos/<%= rb.id %>/manual" class="row"><%- include('../partials/csrf') %><input name="nota" required minlength="5" placeholder="Comprobante de la devolución" aria-label="Comprobante"><button class="btn btn--ghost btn--sm" type="submit">Registrar devolución manual</button></form>
+    </div>
+    <% } %>
+  </article>
+<% }) %></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

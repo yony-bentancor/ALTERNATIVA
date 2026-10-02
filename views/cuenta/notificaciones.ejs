@@ -1,0 +1,15 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Avisos', acciones: avisosSinLeer ? `<form method="post" action="${base}/leer"><input type="hidden" name="_csrf" value="${csrf}"><button class="btn btn--ghost btn--sm" type="submit">Marcar todo como leído</button></form>` : '' }) %>
+<% if (area !== 'panel') { %><%- include('../partials/cuenta-nav', { actual: 'avisos' }) %><% } %>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No tenés avisos', ic: 'bell' }) %><% } %>
+<ul class="list panel">
+  <% p.items.forEach(n => { %>
+  <li><a class="list-row" href="<%= base %>/<%= n.id %>">
+    <span class="iconbtn" style="background:<%= n.leida ? 'var(--gray)' : 'var(--lav-50)' %>"><%- icono({ reserva_confirmada: 'checkCircle', reserva_nueva: 'calendar', recordatorio: 'clock', cancelada: 'x', reprogramada: 'repeat', pago: 'card', reembolso: 'wallet', resena_nueva: 'star', pedir_resena: 'star', respuesta_resena: 'chat', mensaje: 'chat', alerta: 'alert', verificacion: 'shield', liquidacion: 'wallet' }[n.tipo] || 'bell', { tam: 18 }) %></span>
+    <div class="list-row__main"><p class="list-row__title<%= n.leida ? '' : ' conv-unread' %>"><%= n.titulo %></p><p class="list-row__sub"><%= n.texto %></p></div>
+    <span class="small muted"><%= fRelativa(n.creado) %></span>
+  </a></li>
+  <% }) %>
+</ul>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

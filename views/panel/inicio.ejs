@@ -1,0 +1,55 @@
+<%- include('../partials/head') %>
+<div class="pagehead">
+  <% if (e.avatar) { %><img class="avatar avatar--lg" src="<%= e.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= e.nombre[0] %></span><% } %>
+  <div class="pagehead__text"><h1>Hola, <%= e.nombre.split(' ')[0] %></h1><p class="muted">Ficha <b><%= ESTADOS_ESPECIALISTA[e.estado] %></b><% if (e.plan === 'profesional') { %> · Plan Profesional<% } %></p></div>
+  <div class="pagehead__actions"><a class="btn btn--ghost btn--sm" href="/especialistas/<%= e.slug %>" target="_blank"><%- icono('eye', { tam: 16 }) %> Ver mi ficha</a></div>
+</div>
+
+<% if (e.estado === 'en_revision') { %><div class="flash" style="margin-bottom:12px"><%- icono('clock', { tam: 18 }) %><span>Tu ficha está en revisión. Te avisamos cuando esté publicada.</span></div><% } %>
+<% if (e.estado === 'suspendido') { %><div class="flash flash--error" style="margin-bottom:12px"><%- icono('alert', { tam: 18 }) %><span>Tu ficha está suspendida<%= e.motivoEstado ? ': ' + e.motivoEstado : '' %>. Escribinos desde Ayuda.</span></div><% } %>
+<% if ((e.cambiosPendientes || []).length) { %><div class="flash" style="margin-bottom:12px"><%- icono('info', { tam: 18 }) %><span>Tenés cambios en revisión: <%= e.cambiosPendientes.map(c => c.campo === 'nombre' ? 'nombre' : 'categorías').join(', ') %>.</span></div><% } %>
+
+<% if (!comp.listo || ['borrador', 'inactivo'].includes(e.estado)) { %>
+<section class="panel panel--lav" style="margin-bottom:16px">
+  <div class="panel__title"><h2><%= comp.listo ? 'Tu ficha está lista' : 'Completá tu ficha' %></h2><span class="pill pill--brand"><%= comp.porcentaje %>%</span></div>
+  <div class="progress" style="margin-bottom:12px"><span style="width:<%= comp.porcentaje %>%"></span></div>
+  <ul class="checklist"><% comp.checks.forEach(c => { %><li><a class="<%= c.ok ? 'is-ok' : '' %>" href="<%= c.enlace %>"><%- icono(c.ok ? 'checkCircle' : 'chevronRight', { tam: 18 }) %><%= c.texto %></a></li><% }) %></ul>
+  <% if (comp.listo && ['borrador','inactivo'].includes(e.estado)) { %><form method="post" action="/panel/publicar" style="margin-top:12px"><%- include('../partials/csrf') %><button class="btn btn--lav" type="submit">Publicar mi ficha</button></form><% } %>
+</section>
+<% } %>
+
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas (30 días)', valor: stats.reservas, sub: stats.cancelaciones + ' cancelaciones' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ingresos estimados', valor: pesos(stats.ingresos), sub: 'después de comisiones' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Visitas a tu ficha', valor: stats.vistas, sub: 'conversión ' + String(stats.conversion).replace('.', ',') + '%' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reputación', valor: e.stats && e.stats.resenas ? '★ ' + fRating(e.stats.rating) : '—', sub: (e.stats && e.stats.resenas || 0) + ' reseñas' }) %>
+</div>
+
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel">
+    <div class="panel__title"><h2>Hoy · <%= fFecha(new Date()) %></h2><a href="/panel/agenda?vista=dia">Agenda del día</a></div>
+    <% if (!deHoy.length) { %><p class="muted">No tenés sesiones hoy.</p><% } %>
+    <ul class="day-agenda"><% deHoy.forEach(r => { %><li><time><%= fHora(r.inicio) %></time><a class="list-row" href="/panel/reservas/<%= r.id %>"><div class="list-row__main"><p class="list-row__title"><%= r.foto.usuario %></p><p class="list-row__sub"><%= r.foto.servicio %> · <%= MODALIDADES[r.modalidad].texto %></p></div><%- include('../partials/estado', { estado: r.estado }) %></a></li><% }) %></ul>
+  </section>
+  <div class="stack-lg">
+    <% if (porConfirmar.length) { %>
+    <section class="panel panel--warn"><h2>Para confirmar (<%= porConfirmar.length %>)</h2>
+      <ul class="list"><% porConfirmar.slice(0, 5).forEach(r => { %><li class="row row--between"><span><b><%= r.foto.usuario %></b><br><span class="small muted"><%= r.foto.servicio %> · <%= fFechaHora(r.inicio) %></span></span><form method="post" action="/panel/reservas/<%= r.id %>/confirmar"><%- include('../partials/csrf') %><button class="btn btn--primary btn--sm" type="submit">Confirmar</button></form></li><% }) %></ul>
+    </section>
+    <% } %>
+    <section class="panel"><div class="panel__title"><h2>Próximas (<%= totalProximas %>)</h2><a href="/panel/reservas">Ver todas</a></div>
+      <div class="stack"><% proximas.forEach(r => { %><%- include('../partials/reserva-item', { r, base: '/panel/reservas', quien: 'usuario' }) %><% }) %></div>
+      <% if (!proximas.length) { %><p class="muted">Sin reservas próximas.</p><% } %>
+    </section>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Visitas y reservas (30 días)</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'vistas', etiqueta: 'visitas' }) %><%- include('../partials/grafico', { serie: stats.serie, campo: 'reservas', etiqueta: 'reservas', color: 'var(--lav)' }) %></section>
+  <section class="panel"><div class="panel__title"><h2>Últimas reseñas</h2><a href="/panel/resenas">Responder</a></div>
+    <% resenas.forEach(rv => { %><article class="review"><div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div><div class="review__meta"><%= servMap.get(rv.servicioId)?.titulo %> · <%= fRelativa(rv.creado) %></div><% if (rv.comentario) { %><p class="review__body"><%= recortar(rv.comentario, 140) %></p><% } %></article><% }) %>
+    <% if (!resenas.length) { %><p class="muted">Todavía no tenés reseñas.</p><% } %>
+  </section>
+</div>
+<% if (!e.verificacion || e.verificacion.estado === 'ninguna') { %><p class="panel panel--blue" style="margin-top:16px"><%- icono('shield', { tam: 18 }) %> Verificá tu identidad para mostrar el sello <b>Identidad verificada</b>. <a href="/panel/verificacion">Empezar</a></p><% } %>
+<%- include('../partials/pie') %>

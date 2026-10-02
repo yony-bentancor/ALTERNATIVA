@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Disponibilidad', sub: 'Así ven tus turnos libres las personas que quieren reservar (próximas 3 semanas).', volver: '/panel/agenda' }) %>
+<% if (!servicios.length) { %><%- include('../partials/vacio', { t: 'Primero creá un servicio', accion: 'Crear servicio', href: '/panel/servicios/nuevo', ic: 'layers' }) %><% } else { %>
+<form class="toolbar"><div class="field"><label for="dv-s">Servicio</label><select id="dv-s" name="servicio" data-autosubmit><% servicios.forEach(x => { %><option value="<%= x.id %>"<%= s && s.id === x.id ? ' selected' : '' %>><%= x.titulo %> (<%= duracion(x.duracion) %>)</option><% }) %></select></div></form>
+<%- include('../partials/barras', { filas: resumen.map(d => ({ texto: fFechaTexto(d.fecha), valor: d.cantidad, mostrar: d.cantidad ? d.cantidad + ' turnos · desde ' + d.primero : 'sin turnos' })) }) %>
+<p class="small muted" style="margin-top:12px">¿Muy pocos turnos? Revisá tus <a href="/panel/agenda/horarios">horarios</a>, el aviso mínimo y los <a href="/panel/agenda/bloqueos">bloqueos</a>.</p>
+<% } %>
+<%- include('../partials/pie') %>

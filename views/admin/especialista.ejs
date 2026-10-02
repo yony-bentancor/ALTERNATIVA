@@ -1,0 +1,124 @@
+<%- include('../partials/head') %>
+<% const v = (e.verificacion || {}).estado || 'ninguna'; const rec = e.reclamo || { estado: 'propio' }; %>
+<div class="pagehead">
+  <a class="pagehead__back" href="/admin/especialistas" aria-label="Volver"><%- icono('arrowLeft') %></a>
+  <% if (e.avatar) { %><img class="avatar avatar--lg" src="<%= e.avatar %>" alt=""><% } else { %><span class="avatar avatar--lg avatar--initial"><%= e.nombre[0] %></span><% } %>
+  <div class="pagehead__text"><h1><%= e.nombre %></h1><p class="muted"><%= e.titular || 'Sin titular' %></p>
+    <p class="row" style="margin-top:6px"><%- include('../partials/pill', { texto: ESTADOS_ESPECIALISTA[e.estado], tono: { activo: 'ok', en_revision: 'warn', suspendido: 'danger' }[e.estado] }) %><%- include('../partials/pill', { texto: { ninguna: 'Identidad sin verificar', pendiente: 'Identidad pendiente', verificada: 'Identidad verificada', rechazada: 'Identidad rechazada' }[v], tono: { verificada: 'ok', pendiente: 'warn', rechazada: 'danger' }[v] }) %><%- include('../partials/pill', { texto: { propio: 'Alta propia', sin_reclamar: 'Sin reclamar', invitado: 'Invitación enviada', reclamado: 'Reclamado' }[rec.estado], tono: 'info' }) %><% if (e.plan === 'profesional') { %><%- include('../partials/pill', { texto: 'Plan Profesional', tono: 'brand' }) %><% } %><% if (e.eliminado) { %><%- include('../partials/pill', { texto: 'Dado de baja', tono: 'danger' }) %><% } %></p></div>
+  <div class="pagehead__actions"><% if (e.estado === 'activo') { %><a class="btn btn--ghost btn--sm" href="/especialistas/<%= e.slug %>" target="_blank"><%- icono('eye', { tam: 16 }) %> Ver ficha</a><% } %><a class="btn btn--ghost btn--sm" href="/admin/especialistas/<%= e.id %>/editar"><%- icono('edit', { tam: 16 }) %> Editar</a></div>
+</div>
+<% if (e.motivoEstado) { %><p class="small muted">Motivo del estado: <%= e.motivoEstado %></p><% } %>
+
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas (90 días)', valor: stats.reservas, sub: cantReservas + ' en total' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ingresos del especialista', valor: pesos(stats.ingresos), sub: '90 días' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reputación', valor: e.stats && e.stats.resenas ? '★ ' + fRating(e.stats.rating) : '—', sub: ((e.stats && e.stats.resenas) || 0) + ' reseñas' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ficha completa', valor: comp.porcentaje + '%', sub: comp.faltan.length ? 'Falta: ' + comp.faltan.map(f => f.texto.toLowerCase()).slice(0, 2).join(', ') : 'Lista para publicar' }) %>
+</div>
+
+<div class="layout-aside" style="margin-top:16px">
+  <div class="stack-lg">
+    <% if ((e.cambiosPendientes || []).length) { %>
+    <section class="panel panel--warn"><h2>Cambios pendientes de aprobación</h2>
+      <% e.cambiosPendientes.forEach(c => { %>
+      <div class="row row--between" style="padding:6px 0">
+        <span><b><%= nombresCampo[c.campo] || c.campo %>:</b> <%= c.campo === 'categorias' ? [].concat(c.valor).map(id => catMap.get(id)?.nombre || (categorias.find(x => x.id === id) || {}).nombre || id).join(', ') : c.valor %><br><span class="small muted">Antes: <%= c.campo === 'categorias' ? (e.categorias || []).map(id => catMap.get(id)?.nombre).join(', ') : e[c.campo] %> · pedido <%= fRelativa(c.fecha) %></span></span>
+        <span class="row"><% ['aprobar', 'rechazar'].forEach(dec => { %><form method="post" action="/admin/especialistas/<%= e.id %>/cambios"><%- include('../partials/csrf') %><input type="hidden" name="campo" value="<%= c.campo %>"><input type="hidden" name="decision" value="<%= dec %>"><button class="btn btn--sm <%= dec === 'aprobar' ? 'btn--primary' : 'btn--ghost' %>" type="submit"><%= dec === 'aprobar' ? 'Aprobar' : 'Rechazar' %></button></form><% }) %></span>
+      </div><% }) %>
+    </section>
+    <% } %>
+
+    <section class="panel"><h2>Datos de la ficha</h2>
+      <dl class="dl">
+        <div><dt>Categorías</dt><dd><%= (e.categorias || []).map(id => catMap.get(id)?.nombre).filter(Boolean).join(', ') || '—' %></dd></div>
+        <div><dt>Modalidades</dt><dd><%= (e.modalidades || []).map(m => MODALIDADES[m]?.texto).join(', ') %></dd></div>
+        <div><dt>Ubicación</dt><dd><%= [e.ubicacion?.direccion, e.ubicacion?.barrio, e.ubicacion?.ciudad, e.ubicacion?.departamento].filter(Boolean).join(', ') || '—' %></dd></div>
+        <div><dt>Contacto</dt><dd><%= e.telefono || '—' %><% if (e.whatsapp) { %> · <a href="<%= enlaceWhatsapp(e.whatsapp, 'Hola ' + e.nombre.split(' ')[0] + ', te escribimos de Alternativa') %>" target="_blank" rel="noopener">WhatsApp</a><% } %><%= e.mostrarWhatsapp ? ' (botón visible)' : '' %></dd></div>
+        <div><dt>Cuenta</dt><dd><% if (cuenta) { %><a href="/admin/usuarios/<%= cuenta.id %>"><%= cuenta.nombre %></a> · <%= cuenta.email %><% } else { %>Sin cuenta asociada<% } %></dd></div>
+        <div><dt>Comisión</dt><dd><%= e.comision !== null && e.comision !== undefined ? e.comision + '% (propia)' : 'Reglas generales' %></dd></div>
+        <div><dt>Cobros</dt><dd><%= e.mercadopago && e.mercadopago.conectado ? 'Mercado Pago vinculado (' + e.mercadopago.usuarioMp + ')' : 'Sin cuenta de cobro' %></dd></div>
+        <div><dt>Alta</dt><dd><%= fFecha(e.creado) %><%= e.publicado ? ' · publicada ' + fFecha(e.publicado) : '' %></dd></div>
+      </dl>
+      <% if (e.ubicacion && (e.ubicacion.direccion || e.ubicacion.barrio)) { %><%- include('../partials/mapa', { lugar: e.ubicacion.lat ? { lat: e.ubicacion.lat, lng: e.ubicacion.lng } : { q: [e.ubicacion.direccion || e.ubicacion.barrio, e.ubicacion.ciudad, 'Uruguay'].filter(Boolean).join(', ') }, texto: e.ubicacion.direccion || e.ubicacion.barrio, exacto: true }) %><% } %>
+    </section>
+
+    <section class="panel" id="servicios"><div class="panel__title"><h2>Servicios (<%= servicios.length %>)</h2></div>
+      <% if (servicios.length) { %><div class="table-wrap"><table class="table"><thead><tr><th>Servicio</th><th>Categoría</th><th class="num">Precio</th><th>Estado</th><th class="num">Valoración</th></tr></thead><tbody>
+      <% servicios.forEach(s => { %><tr><td><a href="/admin/servicios/<%= s.id %>"><%= s.titulo %></a><br><span class="small muted"><%= duracion(s.duracion) %></span></td><td class="small"><%= catMap.get(s.categoriaId)?.nombre %></td><td class="num"><%= pesos(s.precio) %></td><td><%- include('../partials/pill', { texto: { activo: 'Publicado', pausado: 'Pausado', en_revision: 'En revisión', suspendido: 'Suspendido' }[s.estado], tono: { activo: 'ok', en_revision: 'warn', suspendido: 'danger' }[s.estado] }) %></td><td class="num"><%= s.rating && s.rating.cant ? '★ ' + fRating(s.rating.prom) + ' (' + s.rating.cant + ')' : '—' %></td></tr><% }) %>
+      </tbody></table></div><% } else { %><p class="muted">Sin servicios.</p><% } %>
+      <details style="margin-top:12px"><summary class="btn btn--ghost btn--sm"><%- icono('plus', { tam: 16 }) %> Agregar servicio</summary>
+        <form method="post" action="/admin/especialistas/<%= e.id %>/servicios" class="stack" style="margin-top:12px"><%- include('../partials/csrf') %>
+          <div class="grid-2">
+            <div class="field"><label>Nombre</label><input name="titulo" required maxlength="120"></div>
+            <div class="field"><label>Categoría</label><select name="categoriaId" required><% categorias.filter(c => c.estado === 'activa').forEach(c => { %><option value="<%= c.id %>"<%= (e.categorias || [])[0] === c.id ? ' selected' : '' %>><%= c.nombre %></option><% }) %></select></div>
+            <div class="field"><label>Precio ($)</label><input name="precio" type="number" min="100" max="200000" required></div>
+            <div class="field"><label>Duración (min)</label><input name="duracion" type="number" min="10" max="600" value="60" required></div>
+          </div>
+          <div class="field"><label>Resumen</label><input name="resumen" maxlength="240"></div>
+          <div class="field"><label>Descripción</label><textarea name="descripcion" rows="3"></textarea></div>
+          <div class="row"><% Object.entries(MODALIDADES).forEach(([k, m]) => { %><label class="check"><input type="checkbox" name="modalidades" value="<%= k %>"<%= (e.modalidades || []).includes(k) ? ' checked' : '' %>> <%= m.texto %></label><% }) %></div>
+          <button class="btn btn--primary btn--sm" type="submit">Agregar servicio</button>
+        </form>
+      </details>
+    </section>
+
+    <section class="panel" id="multimedia"><h2>Fotos y video (<%= media.filter(m => m.visibilidad === 'publica').length %>)</h2>
+      <div class="media-grid"><% media.filter(m => m.visibilidad === 'publica').forEach(m => { %><figure class="media-item" style="margin:0"><% if (m.tipo === 'video') { %><video src="<%= m.url %>" muted preload="metadata"></video><% } else { %><img src="<%= m.url %>" alt="" loading="lazy"><% } %><figcaption class="media-item__bar"><%= ({ avatar: 'Perfil', portada: 'Portada', foto: 'Foto', espacio: 'Espacio', servicio: 'Servicio', video: 'Video' })[m.tipo] || m.tipo %><%= m.estado !== 'aprobado' ? ' · ' + m.estado : '' %></figcaption></figure><% }) %></div>
+      <form method="post" action="/admin/especialistas/<%= e.id %>/multimedia" enctype="multipart/form-data" class="row" style="margin-top:12px"><%- include('../partials/csrf') %>
+        <select name="tipo" aria-label="Tipo"><option value="foto">Foto de galería</option><option value="perfil">Foto de perfil</option><option value="portada">Portada</option><option value="video">Video</option></select>
+        <input type="file" name="archivo" accept="image/*,video/mp4,video/webm,video/quicktime" required aria-label="Archivo">
+        <button class="btn btn--ghost btn--sm" type="submit"><%- icono('upload', { tam: 16 }) %> Subir</button>
+      </form>
+    </section>
+
+    <section class="panel"><h2>Certificaciones</h2>
+      <% if (!certificaciones.length) { %><p class="muted">Sin certificaciones.</p><% } %>
+      <ul class="list"><% certificaciones.forEach(c => { %><li class="row row--between"><span><b><%= c.titulo %></b><br><span class="small muted"><%= [c.institucion, c.anio].filter(Boolean).join(' · ') %></span></span><span class="row"><%- include('../partials/pill', { texto: c.estado, tono: { verificada: 'ok', pendiente: 'warn', rechazada: 'danger' }[c.estado] }) %><% if (c.documentoId) { %><a class="small" href="/admin/documentos/<%= c.documentoId %>" target="_blank">Documento</a><% } %></span></li><% }) %></ul>
+    </section>
+
+    <section class="panel"><h2>Historial de auditoría</h2>
+      <% if (!registros.length) { %><p class="muted">Sin registros.</p><% } %>
+      <ul class="list small"><% registros.forEach(a => { %><li><b><%= a.accion %></b> · <%= a.actor %> · <span class="muted"><%= fFechaHora(a.creado) %></span><%= a.resumen ? ' · ' + a.resumen : '' %></li><% }) %></ul>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <form class="panel stack" method="post" action="/admin/especialistas/<%= e.id %>/estado"><%- include('../partials/csrf') %>
+      <h3>Estado de la ficha</h3>
+      <div class="field"><select name="estado" aria-label="Estado"><% Object.entries(ESTADOS_ESPECIALISTA).forEach(([k, t]) => { %><option value="<%= k %>"<%= e.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+      <div class="field"><textarea name="motivo" rows="2" placeholder="Motivo (obligatorio para suspender; se le muestra al especialista)"></textarea></div>
+      <button class="btn btn--primary btn--sm" type="submit">Actualizar estado</button>
+    </form>
+
+    <form class="panel stack" method="post" action="/admin/especialistas/<%= e.id %>/identidad"><%- include('../partials/csrf') %>
+      <h3>Identidad</h3>
+      <% if (solicitudes.length) { %><p class="small">Última solicitud: <b><%= solicitudes[0].estado %></b> · <%= fFecha(solicitudes[0].creado) %><% (solicitudes[0].documentos || []).forEach((id, i) => { %> · <a href="/admin/documentos/<%= id %>" target="_blank">doc <%= i + 1 %></a><% }) %></p><% } %>
+      <div class="field"><select name="estado" aria-label="Estado de identidad"><option value="ninguna"<%= v === 'ninguna' ? ' selected' : '' %>>Sin verificar</option><option value="verificada"<%= v === 'verificada' ? ' selected' : '' %>>Verificada</option><option value="rechazada"<%= v === 'rechazada' ? ' selected' : '' %>>Rechazada</option></select></div>
+      <div class="field"><input name="nota" placeholder="Nota interna" maxlength="300"></div>
+      <button class="btn btn--ghost btn--sm" type="submit">Guardar</button>
+    </form>
+
+    <% if (!e.usuarioId) { %>
+    <form class="panel stack" method="post" action="/admin/especialistas/<%= e.id %>/invitar"><%- include('../partials/csrf') %>
+      <h3>Invitar a reclamar</h3>
+      <p class="small muted">El especialista recibe un enlace para crear su cuenta y administrar esta ficha (vence en 30 días).</p>
+      <% if (rec.estado === 'invitado') { %><p class="small">Invitación enviada a <b><%= rec.email %></b> el <%= fFecha(rec.invitado) %>.</p><% } %>
+      <% if (enlaceReclamo) { %><p class="small" style="word-break:break-all">Enlace de prueba: <a href="<%= enlaceReclamo %>"><%= enlaceReclamo %></a></p><% } %>
+      <div class="field"><input type="email" name="email" required placeholder="email@del-especialista.com" value="<%= rec.email || '' %>"></div>
+      <button class="btn btn--primary btn--sm" type="submit"><%= rec.estado === 'invitado' ? 'Reenviar invitación' : 'Enviar invitación' %></button>
+    </form>
+    <% } %>
+
+    <% if (denuncias.length) { %><div class="panel"><h3>Denuncias (<%= denuncias.length %>)</h3><ul class="list small"><% denuncias.forEach(d => { %><li><%= d.motivo %> · <%= d.estado %></li><% }) %></ul><a class="small" href="/admin/denuncias?tipo=especialista">Ver denuncias</a></div><% } %>
+
+    <div class="panel stack small">
+      <h3>Accesos rápidos</h3>
+      <a href="/admin/reservas?especialista=<%= e.id %>">Reservas de esta ficha</a>
+      <a href="/admin/servicios?especialista=<%= e.id %>">Servicios</a>
+      <a href="/admin/auditoria?objeto=<%= e.id %>">Auditoría completa</a>
+    </div>
+
+    <% if (!e.eliminado) { %><form method="post" action="/admin/especialistas/<%= e.id %>/eliminar" data-confirm="¿Dar de baja la ficha? Se oculta del sitio; el historial se conserva."><%- include('../partials/csrf') %><button class="btn btn--danger btn--block btn--sm" type="submit"><%- icono('trash', { tam: 16 }) %> Dar de baja</button></form><% } %>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

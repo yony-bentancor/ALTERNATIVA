@@ -2,9 +2,13 @@ node_modules/
 .env
 .env.*
 !.env.example
-public/uploads/*
-!public/uploads/.gitkeep
+# Datos locales: se regeneran solos con los datos de prueba (npm run seed)
+data/db.json
+data/*.tmp
+# Archivos subidos
+uploads/publico/*
+uploads/privado/*
+!uploads/publico/.gitkeep
+!uploads/privado/.gitkeep
 npm-debug.log*
 .DS_Store
-coverage/
-storage/

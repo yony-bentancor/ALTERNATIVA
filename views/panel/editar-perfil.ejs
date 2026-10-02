@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<% const u = d.ubicacion || {}; const cats = [].concat(d.categorias || []); const mods = [].concat(d.modalidades || []); const r = d.redes || {}; %>
+<%- include('../partials/encabezado', { t: 'Editar perfil', volver: '/panel/perfil' }) %>
+<% if (errores.length) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+<form method="post" action="/panel/perfil/editar" class="stack-lg" style="max-width:760px">
+  <%- include('../partials/csrf') %>
+  <section class="panel"><h2>Presentación</h2>
+    <div class="field"><label for="ep-n">Nombre profesional</label><input id="ep-n" name="nombre" required maxlength="120" value="<%= d.nombre %>"><% if (e.estado === 'activo') { %><p class="field__hint">Cambiar el nombre o las categorías requiere una revisión rápida.</p><% } %></div>
+    <div class="field"><label for="ep-t">Frase de presentación</label><input id="ep-t" name="titular" maxlength="160" value="<%= d.titular || '' %>"></div>
+    <div class="field"><label for="ep-b">Sobre vos</label><textarea id="ep-b" name="bio" rows="7" maxlength="4000"><%= d.bio || '' %></textarea><p class="field__hint">Mínimo 80 caracteres para publicar. Podés usar **negrita** y listas con guiones.</p></div>
+    <div class="grid-2"><div class="field"><label for="ep-a">Años de experiencia</label><input id="ep-a" name="anios" type="number" min="0" max="80" value="<%= d.anios || 0 %>"></div><div class="field"><label for="ep-i">Idiomas</label><input id="ep-i" name="idiomas" value="<%= [].concat(d.idiomas || []).join(', ') %>" placeholder="Español, Inglés"></div></div>
+    <div class="field"><label for="ep-x">Experiencia</label><textarea id="ep-x" name="experiencia" rows="3"><%= d.experiencia || '' %></textarea></div>
+    <div class="field"><label for="ep-f">Formación</label><textarea id="ep-f" name="formacion" rows="3"><%= d.formacion || '' %></textarea><p class="field__hint">Para mostrarla como verificada, cargá tus <a href="/panel/certificaciones">certificaciones</a>.</p></div>
+  </section>
+  <section class="panel"><h2>Qué ofrecés y cómo</h2>
+    <fieldset class="field"><legend>Categorías</legend><div class="checkgrid"><% categorias.forEach(c => { %><label class="check check--pill"><input type="checkbox" name="categorias" value="<%= c.id %>"<%= cats.includes(c.id) ? ' checked' : '' %>><span><%= c.nombre %></span></label><% }) %></div></fieldset>
+    <fieldset class="field"><legend>Modalidades</legend><div class="checkgrid"><% Object.entries(MODALIDADES).forEach(([k, m]) => { %><label class="check check--pill"><input type="checkbox" name="modalidades" value="<%= k %>"<%= mods.includes(k) ? ' checked' : '' %>><span><%= m.texto %></span></label><% }) %></div></fieldset>
+  </section>
+  <section class="panel"><h2>Ubicación y mapa</h2>
+    <div class="grid-2">
+      <div class="field"><label for="ep-d">Departamento</label><select id="ep-d" name="departamento"><option value="">—</option><% DEPARTAMENTOS.forEach(x => { %><option<%= u.departamento === x ? ' selected' : '' %>><%= x %></option><% }) %></select></div>
+      <div class="field"><label for="ep-c">Ciudad</label><input id="ep-c" name="ciudad" value="<%= u.ciudad || '' %>"></div>
+      <div class="field"><label for="ep-ba">Barrio</label><input id="ep-ba" name="barrio" value="<%= u.barrio || '' %>"></div>
+      <div class="field"><label for="ep-r">Radio a domicilio (km)</label><input id="ep-r" name="radioKm" type="number" min="0" max="200" value="<%= u.radioKm || 10 %>"></div>
+    </div>
+    <div class="field"><label for="ep-dir">Dirección exacta <span class="muted">(privada)</span></label><input id="ep-dir" name="direccion" maxlength="200" value="<%= u.direccion || '' %>"><p class="field__hint">Se muestra solo a quien tiene una reserva presencial confirmada, con el mapa y "Cómo llegar".</p></div>
+    <div class="field"><label for="ep-ref">Referencia pública</label><input id="ep-ref" name="referencia" maxlength="160" value="<%= u.referencia || '' %>" placeholder="Pocitos, cerca de Rambla y 26 de Marzo"></div>
+    <div class="grid-2">
+      <div class="field"><label for="ep-lat">Latitud</label><input id="ep-lat" name="lat" inputmode="decimal" value="<%= Number.isFinite(u.lat) ? u.lat : '' %>" placeholder="-34.9093"></div>
+      <div class="field"><label for="ep-lng">Longitud</label><input id="ep-lng" name="lng" inputmode="decimal" value="<%= Number.isFinite(u.lng) ? u.lng : '' %>" placeholder="-56.1505"></div>
+    </div>
+    <p class="field__hint">Para obtener las coordenadas: en Google Maps hacé clic derecho sobre tu consultorio y copiá los números (latitud, longitud).</p>
+  </section>
+  <section class="panel"><h2>Contacto</h2>
+    <div class="grid-2">
+      <div class="field"><label for="ep-tel">Teléfono <span class="muted">(privado)</span></label><input id="ep-tel" name="telefono" type="tel" value="<%= d.telefono || '' %>"></div>
+      <div class="field"><label for="ep-wa">WhatsApp</label><input id="ep-wa" name="whatsapp" type="tel" value="<%= d.whatsapp || '' %>" placeholder="099 123 456"></div>
+    </div>
+    <label class="check"><input type="checkbox" name="mostrarWhatsapp" value="1"<%= d.mostrarWhatsapp ? ' checked' : '' %>><span>Mostrar botón de WhatsApp<small class="muted">Según la política de Alternativa (hoy: <%= { siempre: 'siempre', despues_reserva: 'a quien tiene una reserva confirmada', nunca: 'desactivado' }[cfg.contacto.whatsappEspecialista] %>).</small></span></label>
+    <div class="grid-2">
+      <div class="field"><label for="ep-ig">Instagram</label><input id="ep-ig" name="instagram" value="<%= r.instagram || '' %>" placeholder="usuario"></div>
+      <div class="field"><label for="ep-w">Sitio web</label><input id="ep-w" name="web" type="url" value="<%= r.web || '' %>" placeholder="https://"></div>
+    </div>
+  </section>
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">Guardar perfil</button><a class="btn btn--ghost" href="/panel/perfil">Cancelar</a></div>
+</form>
+<%- include('../partials/pie') %>

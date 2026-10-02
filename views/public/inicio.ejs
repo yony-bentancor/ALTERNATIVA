@@ -1,0 +1,84 @@
+<%- include('../partials/head') %>
+<section class="hero hero--img">
+  <div>
+    <h1 class="hero__title">Tu bienestar, con especialistas reales</h1>
+    <p class="hero__lead">Masajes, yoga, reiki, acupuntura y más en todo Uruguay. Precios finales, horarios en tiempo real y reseñas verificadas de personas que hicieron la sesión.</p>
+    <form class="ask" action="/buscar" role="search">
+      <span class="ask__icon"><%- icono('search', { tam: 22 }) %></span>
+      <input type="search" name="q" placeholder="Probá: masaje hoy en Pocitos" aria-label="¿Qué estás buscando?">
+      <button class="btn btn--primary" type="submit">Buscar</button>
+    </form>
+    <div class="suggest" aria-label="Búsquedas sugeridas">
+      <% ['masaje hoy', 'yoga online', 'reiki a distancia', 'acupuntura', 'masaje a domicilio', 'carta natal', 'meditación'].forEach(s => { %><a href="/buscar?q=<%= encodeURIComponent(s) %>"><%= s %></a><% }) %>
+    </div>
+    <div class="stats-strip"><span><strong><%= totalEspecialistas %></strong> especialistas</span><span><strong><%= totalServicios %></strong> servicios</span><span><strong><%= categorias.length %></strong> disciplinas</span></div>
+  </div>
+  <div class="hero__img"><img src="/img/demo/inicio.jpg" alt="Ilustración de un paisaje sereno con una flor de loto" fetchpriority="high"></div>
+</section>
+
+<% if (proxima) { %>
+<section class="section">
+  <a class="booking-card" href="/mi/reservas/<%= proxima.id %>" style="border-color:var(--blue)">
+    <div class="datebox"><div class="datebox__d"><%= fFecha(proxima.inicio).split(' ')[1] %></div><div class="datebox__m"><%= fFecha(proxima.inicio).split(' ')[3].slice(0,3) %></div></div>
+    <div class="list-row__main"><p class="small muted" style="margin:0">Tu próxima sesión</p><p class="list-row__title"><%= proxima.foto.servicio %></p><p class="list-row__sub"><%= proxima.foto.especialista %> · <%= fFechaHora(proxima.inicio) %></p></div>
+    <%- icono('chevronRight') %>
+  </a>
+</section>
+<% } %>
+
+<section class="section">
+  <div class="section__head"><h2>Explorá por disciplina</h2><a href="/categorias">Ver todas</a></div>
+  <div class="cats cats--img">
+    <% categorias.slice(0, 8).forEach(c => { %>
+    <a class="cat" href="/<%= c.slug %>" style="--c:<%= c.color %>">
+      <div class="cat__img"><img src="<%= c.imagen %>" alt="" loading="lazy"></div>
+      <div class="cat__txt"><span class="cat__name"><%= c.nombre %></span><span class="cat__count"><%= c.cantidad %> <%= c.cantidad === 1 ? 'servicio' : 'servicios' %></span></div>
+    </a>
+    <% }) %>
+  </div>
+</section>
+
+<% if (patrocinados.length) { %>
+<section class="section sponsored-block">
+  <div class="section__head"><h2>Destacados</h2><span class="muted small">Exposición paga, marcada como Patrocinado</span></div>
+  <div class="cards"><% patrocinados.forEach(t => { %><%- include('../partials/tarjeta-foto', { t }) %><% }) %></div>
+</section>
+<% } %>
+
+<section class="section">
+  <div class="section__head"><h2>Los mejor valorados</h2><a href="/buscar?orden=valoracion">Ver más</a></div>
+  <div class="cards"><% top.forEach(t => { %><%- include('../partials/tarjeta-foto', { t }) %><% }) %></div>
+</section>
+
+<% if (nuevos.length) { %>
+<section class="section">
+  <div class="section__head"><h2>Nuevos en Alternativa</h2></div>
+  <p class="muted small">Especialistas que se sumaron hace poco. No les inventamos reputación: les damos una parte de la visibilidad para empezar.</p>
+  <div class="cards"><% nuevos.forEach(t => { %><%- include('../partials/tarjeta-foto', { t }) %><% }) %></div>
+</section>
+<% } %>
+
+<section class="section panel panel--soft">
+  <div class="trust">
+    <div class="trust__item"><%- icono('star', { tam: 22 }) %><p><strong>Reseñas verificadas</strong>Solo opina quien hizo la sesión a través de Alternativa. Nadie compra estrellas.</p></div>
+    <div class="trust__item"><%- icono('calendar', { tam: 22 }) %><p><strong>Reservá en minutos</strong>Horarios disponibles en tiempo real y confirmación al instante.</p></div>
+    <div class="trust__item"><%- icono('shield', { tam: 22 }) %><p><strong>Pago seguro</strong>Pagás una sola vez con Mercado Pago. No guardamos datos de tu tarjeta.</p></div>
+  </div>
+</section>
+
+<% if (articulos.length) { %>
+<section class="section">
+  <div class="section__head"><h2>Del blog</h2><a href="/blog">Ver todo</a></div>
+  <div class="cards">
+    <% articulos.forEach(x => { %>
+    <article class="card"><div class="card__img"><img src="<%= x.portada %>" alt="" loading="lazy"></div><div class="card__body"><span class="muted small"><%= x.categoria %></span><h3><a href="/blog/<%= x.slug %>"><%= x.titulo %></a></h3><p class="small muted" style="margin:0"><%= recortar(x.resumen, 110) %></p></div></article>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="section panel panel--lav" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+  <div><h2 style="margin:0">¿Ofrecés terapias o clases?</h2><p class="muted" style="margin:4px 0 0">Publicá tus servicios, organizá tu agenda y cobrá en línea sin transferencias manuales.</p></div>
+  <a class="btn btn--lav" href="/ofrecer">Quiero sumarme</a>
+</section>
+<%- include('../partials/pie') %>

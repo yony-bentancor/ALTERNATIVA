@@ -1,0 +1,77 @@
+<%- include('../partials/head') %>
+<% const activa = ['pendiente', 'pagada', 'confirmada'].includes(r.estado); const empezo = new Date(r.inicio) <= new Date(); %>
+<%- include('../partials/encabezado', { t: 'Reserva ' + r.codigo, sub: r.foto.servicio + ' · ' + fFechaHora(r.inicio), volver: '/admin/reservas' }) %>
+<p><%- include('../partials/estado', { estado: r.estado }) %> <% if (r.incidencia && r.incidencia.abierta) { %><%- include('../partials/pill', { texto: 'Incidencia abierta', tono: 'danger' }) %><% } %> <%- include('../partials/pill', { texto: MODELOS_COBRO[r.foto.modeloCobro || 'split']?.corto || '', tono: 'info' }) %></p>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <% if (r.incidencia && r.incidencia.nota) { %><section class="panel <%= r.incidencia.abierta ? 'panel--warn' : '' %>"><h3>Incidencia</h3><p><%= r.incidencia.nota %></p><p class="small muted"><%= fFechaHora(r.incidencia.fecha) %></p></section><% } %>
+    <section class="panel"><h2>Partes</h2>
+      <dl class="dl">
+        <div><dt>Cliente</dt><dd><a href="/admin/usuarios/<%= r.usuarioId %>"><%= r.foto.usuario %></a><% if (cliente) { %> · <%= cliente.email %><%= cliente.telefono ? ' · ' + cliente.telefono : '' %><% } %></dd></div>
+        <div><dt>Especialista</dt><dd><a href="/admin/especialistas/<%= r.especialistaId %>"><%= r.foto.especialista %></a><% if (e && e.telefono) { %> · <%= e.telefono %><% } %></dd></div>
+        <div><dt>Cuándo</dt><dd><%= fFechaHora(r.inicio) %> a <%= fHora(r.fin) %> (<%= duracion(r.foto.duracion) %>)</dd></div>
+        <div><dt>Modalidad</dt><dd><%= MODALIDADES[r.modalidad]?.texto %><%= r.lugar && r.lugar.direccion ? ' · ' + r.lugar.direccion : '' %><%= r.lugar && r.lugar.enlaceOnline ? ' · ' + r.lugar.enlaceOnline : '' %></dd></div>
+        <% if (r.notasUsuario) { %><div><dt>Notas del cliente</dt><dd><%= r.notasUsuario %></dd></div><% } %>
+        <% if (r.reprogramadaDesde || r.reprogramadaA) { %><div><dt>Reprogramación</dt><dd><% if (r.reprogramadaDesde) { %><a href="/admin/reservas/<%= r.reprogramadaDesde %>">Reserva original</a><% } %><% if (r.reprogramadaA) { %><a href="/admin/reservas/<%= r.reprogramadaA %>">Nueva reserva</a><% } %></dd></div><% } %>
+        <% if (r.cancelacion) { %><div><dt>Cancelación</dt><dd><%= r.cancelacion.rol %> · <%= r.cancelacion.porcentaje %>% (<%= pesos(r.cancelacion.monto || 0) %>) · <%= r.cancelacion.motivo %></dd></div><% } %>
+      </dl>
+    </section>
+    <section class="panel"><h2>Condiciones congeladas al reservar</h2>
+      <div class="summary">
+        <div class="summary__row"><span>Precio del especialista</span><span><%= pesos(r.foto.precio) %></span></div>
+        <% if (r.foto.recargo) { %><div class="summary__row"><span>Recargo a domicilio</span><span><%= pesos(r.foto.recargo) %></span></div><% } %>
+        <% if (r.foto.descuento) { %><div class="summary__row"><span><%= r.foto.promocion %></span><span>− <%= pesos(r.foto.descuento) %></span></div><% } %>
+        <div class="summary__row"><span>Comisión (<%= r.foto.tasa %>% · <%= r.foto.regla || 'general' %>, <%= r.foto.modoTarifa %>)</span><span><%= pesos(r.foto.comision) %></span></div>
+        <div class="summary__row summary__row--total"><span>Pagó el cliente</span><span><%= pesos(r.foto.total) %></span></div>
+        <div class="summary__row"><span>Neto especialista</span><span><%= pesos(r.foto.netoEspecialista) %></span></div>
+        <div class="summary__row"><span>Pasarela estimada (<%= r.foto.procesadorPct %>%, paga <%= r.foto.procesadorPaga %>)</span><span><%= pesos(r.foto.procesadorEstimado || 0) %></span></div>
+      </div>
+      <% if (r.foto.politica) { %><p class="small muted">Política: reembolso total con más de <%= r.foto.politica.horasReembolsoTotal %> h, <%= r.foto.politica.porcentajeParcial %>% con más de <%= r.foto.politica.horasReembolsoParcial %> h.</p><% } %>
+    </section>
+    <section class="panel"><h2>Pago y reembolsos</h2>
+      <% if (pago) { %><p><a href="/admin/pagos/<%= pago.id %>">Pago <%= pago.idPasarela || pago.id %></a> · <%- include('../partials/pill', { texto: ESTADOS_PAGO[pago.estado] || pago.estado, tono: { aprobado: 'ok', rechazado: 'danger', en_disputa: 'danger', reembolsado: 'warn', reembolso_parcial: 'warn' }[pago.estado] }) %> · <%= pago.proveedor %> · <%= pesos(pago.monto) %><%= pago.reembolsado ? ' · reembolsado ' + pesos(pago.reembolsado) : '' %></p><% } else { %><p class="muted">Sin pago asociado.</p><% } %>
+      <ul class="list"><% reembolsos.forEach(rb => { %><li class="row row--between"><span><%= pesos(rb.monto) %> (<%= rb.porcentaje %>%) · <%= rb.motivo %><% if (rb.error) { %><br><span class="small" style="color:var(--danger)"><%= rb.error %></span><% } %></span><%- include('../partials/pill', { texto: rb.estado, tono: { procesado: 'ok', fallido: 'danger', manual: 'warn' }[rb.estado] }) %></li><% }) %></ul>
+    </section>
+    <% if (resena) { %><section class="panel"><h2>Reseña</h2><%- include('../partials/estrellas', { n: resena.puntaje }) %> <span class="small muted"><%= resena.estado %></span><p><%= resena.comentario %></p></section><% } %>
+    <% if (consultas.length) { %><section class="panel"><h2>Consultas</h2><ul class="list"><% consultas.forEach(t => { %><li><a href="/admin/soporte/<%= t.id %>">#<%= t.numero %> · <%= t.asunto %></a> <span class="small muted">· <%= t.estado %></span></li><% }) %></ul></section><% } %>
+    <section class="panel"><h2>Historial</h2><ul class="timeline"><% (r.historial || []).forEach(h => { %><li><b><%= (ESTADOS_RESERVA[h.estado] || {}).texto || h.estado %></b> · <span class="muted"><%= fFechaHora(h.fecha) %> · <%= h.rol || '' %></span><% if (h.nota) { %><br><span class="small"><%= h.nota %></span><% } %></li><% }) %></ul>
+      <% if (registros.length) { %><h3>Auditoría</h3><ul class="list small"><% registros.forEach(a => { %><li><b><%= a.accion %></b> · <%= a.actor %> · <%= fFechaHora(a.creado) %></li><% }) %></ul><% } %>
+    </section>
+  </div>
+  <aside class="stack">
+    <% if (['pagada', 'confirmada'].includes(r.estado)) { %>
+    <div class="panel stack"><h3>Cambiar estado</h3>
+      <% if (r.estado === 'pagada') { %><form method="post" action="/admin/reservas/<%= r.id %>/estado"><%- include('../partials/csrf') %><input type="hidden" name="accion" value="confirmar"><button class="btn btn--primary btn--sm btn--block" type="submit">Confirmar</button></form><% } %>
+      <% if (empezo) { %>
+        <form method="post" action="/admin/reservas/<%= r.id %>/estado"><%- include('../partials/csrf') %><input type="hidden" name="accion" value="realizada"><button class="btn btn--lav btn--sm btn--block" type="submit">Marcar realizada</button></form>
+        <form method="post" action="/admin/reservas/<%= r.id %>/estado" data-confirm="¿Registrar ausencia del cliente? Se aplica la política."><%- include('../partials/csrf') %><input type="hidden" name="accion" value="ausencia_usuario"><button class="btn btn--ghost btn--sm btn--block" type="submit">El cliente no vino</button></form>
+        <form method="post" action="/admin/reservas/<%= r.id %>/estado" data-confirm="¿Registrar ausencia del especialista? El cliente recibe el reembolso según la política."><%- include('../partials/csrf') %><input type="hidden" name="accion" value="ausencia_especialista"><button class="btn btn--ghost btn--sm btn--block" type="submit">El especialista no vino</button></form>
+      <% } else { %><p class="small muted">Las acciones de cierre se habilitan cuando empieza la sesión.</p><% } %>
+    </div>
+    <% } %>
+    <% if (activa) { %>
+    <form class="panel stack" method="post" action="/admin/reservas/<%= r.id %>/cancelar" data-confirm="¿Cancelar la reserva? Se avisa a las dos partes."><%- include('../partials/csrf') %>
+      <h3>Cancelar</h3>
+      <div class="field"><label>Se atribuye a</label><select name="atribuirA"><option value="especialista">Especialista</option><option value="usuario">Cliente</option></select></div>
+      <div class="field"><label>Reembolso (%)</label><input name="porcentaje" type="number" min="0" max="100" value="100" required></div>
+      <div class="field"><label>Motivo</label><textarea name="motivo" rows="2" required minlength="5"></textarea></div>
+      <button class="btn btn--danger btn--sm" type="submit">Cancelar reserva</button>
+    </form>
+    <% } %>
+    <% if (pago && ['aprobado', 'reembolso_parcial', 'en_disputa'].includes(pago.estado) && pendienteReembolso > 0) { %>
+    <form class="panel stack" method="post" action="/admin/reservas/<%= r.id %>/reembolso" data-confirm="¿Ejecutar el reembolso en la pasarela?"><%- include('../partials/csrf') %>
+      <h3>Reembolso manual</h3><p class="small muted">Quedan <%= pesos(pendienteReembolso) %> sin reembolsar.</p>
+      <div class="field"><label>Porcentaje</label><input name="porcentaje" type="number" min="1" max="100" value="50" required></div>
+      <div class="field"><label>Motivo</label><input name="motivo" required minlength="5"></div>
+      <button class="btn btn--ghost btn--sm" type="submit">Reembolsar</button>
+    </form>
+    <% } %>
+    <form class="panel stack" method="post" action="/admin/reservas/<%= r.id %>/incidencia"><%- include('../partials/csrf') %>
+      <h3>Incidencia</h3>
+      <input type="hidden" name="abrir" value="<%= r.incidencia && r.incidencia.abierta ? '0' : '1' %>">
+      <div class="field"><textarea name="nota" rows="2" placeholder="<%= r.incidencia && r.incidencia.abierta ? 'Cómo se resolvió' : 'Qué pasó' %>"></textarea></div>
+      <button class="btn btn--ghost btn--sm" type="submit"><%= r.incidencia && r.incidencia.abierta ? 'Cerrar incidencia' : 'Abrir incidencia' %></button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,8 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reservas' }) %>
+<%- include('../partials/pestanias', { items: [['proximas', '?tab=proximas', 'Próximas', cuentas.proximas], ['confirmar', '?tab=confirmar', 'Por confirmar', cuentas.confirmar], ['historial', '?tab=historial', 'Historial', cuentas.historial], ['canceladas', '?tab=canceladas', 'Canceladas', cuentas.canceladas]], actual: tab }) %>
+<form class="toolbar"><input type="hidden" name="tab" value="<%= tab %>"><div class="field"><input type="search" name="q" value="<%= q %>" placeholder="Buscar por cliente o código" aria-label="Buscar"></div><button class="btn btn--ghost btn--sm" type="submit">Buscar</button></form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reservas acá', ic: 'calendar' }) %><% } %>
+<div class="stack"><% p.items.forEach(r => { %><%- include('../partials/reserva-item', { r, base: '/panel/reservas', quien: 'usuario' }) %><% }) %></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

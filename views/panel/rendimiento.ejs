@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Rendimiento por servicio' }) %>
+<%- include('../partials/pestanias', { items: [['estadisticas', '/panel/estadisticas?periodo=' + periodo, 'Resumen'], ['visualizaciones', '/panel/visualizaciones?periodo=' + periodo, 'Visualizaciones'], ['rendimiento', '/panel/rendimiento?periodo=' + periodo, 'Por servicio']], actual: vista }) %>
+<%- include('../partials/periodo', { periodo, base: '/panel/rendimiento' }) %>
+<% if (!stats.porServicio.length) { %><%- include('../partials/vacio', { t: 'Todavía no tenés servicios', accion: 'Crear servicio', href: '/panel/servicios/nuevo', ic: 'sparkle' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Servicio</th><th class="num">Visitas</th><th class="num">Consultas</th><th class="num">Reservas</th><th class="num">Conversión</th><th class="num">Valoración</th><th class="num">Ingresos</th></tr></thead>
+  <tbody><% stats.porServicio.forEach(s => { %><tr>
+    <td><a href="/panel/servicios/<%= s.id %>"><%= s.titulo %></a><% if (s.estado !== 'activo') { %> <span class="pill"><%= s.estado %></span><% } %></td>
+    <td class="num"><%= s.vistas %></td><td class="num"><%= s.consultas %></td><td class="num"><%= s.reservas %></td><td class="num"><%= fPct(s.conversion) %></td>
+    <td class="num"><%= s.rating ? '★ ' + fRating(s.rating) : '—' %></td><td class="num"><%= pesos(s.ingresos) %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<section class="panel" style="margin-top:16px"><h2>Reservas por servicio</h2><%- include('../partials/barras', { filas: stats.porServicio.map(s => ({ texto: s.titulo, valor: s.reservas })) }) %></section>
+<% } %>
+<%- include('../partials/pie') %>

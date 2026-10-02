@@ -1,0 +1,27 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reseñas', sub: 'Solo existen reseñas de sesiones realizadas. Se ocultan únicamente las que incumplen las reglas.' }) %>
+<form class="toolbar">
+  <div class="field"><input type="search" name="q" value="<%= query.q || '' %>" placeholder="Buscar en el texto" aria-label="Buscar"></div>
+  <div class="field"><select name="estado" aria-label="Estado"><option value="">Todos los estados</option><% [['publicada', 'Publicadas'], ['en_revision', 'En revisión'], ['oculta', 'Ocultas']].forEach(([k, t]) => { %><option value="<%= k %>"<%= query.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+  <div class="field"><select name="estrellas" aria-label="Estrellas"><option value="">Todas las estrellas</option><% [5, 4, 3, 2, 1].forEach(n => { %><option value="<%= n %>"<%= query.estrellas == n ? ' selected' : '' %>><%= n %> ★</option><% }) %></select></div>
+  <label class="check"><input type="checkbox" name="revision" value="1"<%= query.revision === '1' ? ' checked' : '' %>> Con pedido de revisión</label>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reseñas con esos filtros', ic: 'star' }) %><% } %>
+<div class="stack"><% p.items.forEach(r => { const e = espMap.get(r.especialistaId); const pr = r.pedidoRevision; %>
+  <article class="panel<%= r.estado !== 'publicada' || (pr && pr.fecha && !pr.resuelto) ? ' panel--warn' : '' %>">
+    <div class="review__head"><span class="review__who"><%= r.autor %> → <a href="/admin/especialistas/<%= r.especialistaId %>"><%= e ? e.nombre : '' %></a></span><%- include('../partials/estrellas', { n: r.puntaje, tam: 16 }) %></div>
+    <div class="review__meta"><%= servMap.get(r.servicioId)?.titulo %> · <%= fFecha(r.creado) %> · <%- include('../partials/pill', { texto: { publicada: 'Publicada', en_revision: 'En revisión', oculta: 'Oculta' }[r.estado], tono: { publicada: 'ok', en_revision: 'warn', oculta: 'danger' }[r.estado] }) %><% if (denuncias[r.id]) { %> <%- include('../partials/pill', { texto: denuncias[r.id] + ' denuncia(s)', tono: 'danger' }) %><% } %></div>
+    <% if (r.comentario) { %><p class="review__body"><%= r.comentario %></p><% } %>
+    <% if (r.respuesta) { %><div class="review__reply"><b>Respuesta:</b> <%= r.respuesta.texto %></div><% } %>
+    <% if (pr && pr.fecha) { %><p class="small"><b>Pedido de revisión del especialista:</b> <%= motivos[pr.motivo] || pr.motivo %><%= pr.detalle ? ' — ' + pr.detalle : '' %><%= pr.resuelto ? ' · resuelto: ' + (pr.resolucion || '') : '' %></p><% } %>
+    <% if (r.moderacion && r.moderacion.motivo) { %><p class="small muted">Moderación: <%= r.moderacion.motivo %> (<%= fFecha(r.moderacion.fecha) %>)</p><% } %>
+    <form method="post" action="/admin/resenas/<%= r.id %>" class="row" style="margin-top:8px"><%- include('../partials/csrf') %>
+      <input name="motivo" placeholder="Motivo (obligatorio para ocultar)" maxlength="300" style="flex:1;min-width:200px" aria-label="Motivo">
+      <% if (r.estado !== 'oculta') { %><button class="btn btn--danger btn--sm" name="accion" value="ocultar" type="submit">Ocultar</button><% } %>
+      <% if (r.estado !== 'publicada' || (pr && pr.fecha && !pr.resuelto)) { %><button class="btn btn--primary btn--sm" name="accion" value="publicar" type="submit"><%= r.estado === 'publicada' ? 'Mantener publicada' : 'Publicar' %></button><% } %>
+    </form>
+  </article>
+<% }) %></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

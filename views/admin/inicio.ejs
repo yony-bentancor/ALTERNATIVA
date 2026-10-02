@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Resumen', sub: 'Del ' + fFechaTexto(stats.rango.desde) + ' al ' + fFechaTexto(stats.rango.hasta), acciones: '<a class="btn btn--ghost btn--sm" href="/admin/estadisticas?periodo=' + periodo + '">Estadísticas</a><a class="btn btn--primary btn--sm" href="/admin/pendientes">Pendientes</a>' }) %>
+<%- include('../partials/periodo', { periodo, base: '/admin' }) %>
+<% const pend = stats.pendientes; const totalPend = Object.values(pend).reduce((a, b) => a + b, 0); %>
+<% if (totalPend) { %>
+<section class="panel panel--warn" style="margin-bottom:16px">
+  <div class="panel__title"><h2>Requiere atención (<%= totalPend %>)</h2><a href="/admin/pendientes">Ver todo</a></div>
+  <div class="row">
+    <% [['especialistas', 'Fichas en revisión', '/admin/especialistas?estado=en_revision'], ['cambios', 'Cambios sensibles', '/admin/moderacion?tab=cambios'], ['verificaciones', 'Verificaciones', '/admin/verificaciones'], ['incidencias', 'Incidencias', '/admin/reservas?incidencia=1'], ['denuncias', 'Denuncias', '/admin/denuncias'], ['consultas', 'Consultas', '/admin/soporte']].forEach(([k, t, h]) => { if (pend[k]) { %><a class="chip" href="<%= h %>"><b><%= pend[k] %></b>&nbsp;<%= t %></a><% } }) %>
+  </div>
+</section>
+<% } %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas', valor: stats.reservas, sub: stats.cancelaciones + ' canceladas' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Volumen cobrado', valor: pesos(stats.bruto), sub: stats.cantidadPagos + ' pagos' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Comisión de Alternativa', valor: pesos(stats.comision), sub: 'neta de reembolsos' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reembolsado', valor: pesos(stats.reembolsos) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Usuarios', valor: stats.usuarios, sub: stats.usuariosNuevos + ' nuevos · ' + stats.usuariosActivos + ' reservaron' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Especialistas activos', valor: stats.especialistasActivos, sub: 'de ' + stats.especialistas + ' · ' + stats.especialistasNuevos + ' nuevos' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Servicios publicados', valor: stats.servicios }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reseñas', valor: stats.resenas, sub: stats.promedioResenas ? '★ ' + fRating(stats.promedioResenas) + ' promedio' : '' }) %>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Reservas por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'reservas', etiqueta: 'reservas creadas', color: 'var(--lav)' }) %><h2 style="margin-top:12px">Volumen por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'bruto', etiqueta: 'cobrado' }) %></section>
+  <section class="panel"><h2>Reservas por categoría</h2>
+    <% if (stats.porCategoria.length) { %><%- include('../partials/barras', { filas: stats.porCategoria.map(([t, v]) => ({ texto: t, valor: v })) }) %><% } else { %><p class="muted">Sin datos.</p><% } %>
+    <h3 style="margin-top:16px">Por estado</h3>
+    <div class="row"><% Object.entries(stats.porEstado).forEach(([k, v]) => { %><a class="chip" href="/admin/reservas?estado=<%= k %>"><%= (ESTADOS_RESERVA[k] || {}).texto || k %>: <b><%= v %></b></a><% }) %></div>
+  </section>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><div class="panel__title"><h2>Últimas reservas</h2><a href="/admin/reservas">Ver todas</a></div>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Código</th><th>Cliente → Especialista</th><th>Estado</th><th class="num">Total</th></tr></thead><tbody>
+    <% ultimas.forEach(r => { %><tr><td class="nowrap"><a href="/admin/reservas/<%= r.id %>"><%= r.codigo %></a><br><span class="small muted"><%= fRelativa(r.creado) %></span></td><td class="small"><%= r.foto.usuario %> → <%= r.foto.especialista %><br><span class="muted"><%= r.foto.servicio %></span></td><td><%- include('../partials/estado', { estado: r.estado }) %></td><td class="num"><%= pesos(r.foto.total) %></td></tr><% }) %>
+    </tbody></table></div>
+  </section>
+  <section class="panel"><div class="panel__title"><h2>Actividad sensible</h2><a href="/admin/auditoria">Auditoría</a></div>
+    <% if (!alertas.length) { %><p class="muted">Sin eventos.</p><% } %>
+    <ul class="list"><% alertas.forEach(a => { %><li><b><%= a.accion %></b> <%- include('../partials/pill', { texto: a.severidad, tono: a.severidad === 'seguridad' ? 'danger' : 'warn' }) %><br><span class="small muted"><%= a.actor %> · <%= fRelativa(a.creado) %><%= a.resumen ? ' · ' + a.resumen : '' %></span></li><% }) %></ul>
+  </section>
+</div>
+<%- include('../partials/pie') %>

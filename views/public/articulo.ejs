@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<nav class="breadcrumb"><a href="/blog">Blog</a><span>›</span><span><%= a.categoria %></span></nav>
+<article class="prose">
+  <h1><%= a.titulo %></h1>
+  <p class="muted"><%= fFecha(a.publicado) %> · <%= a.categoria %></p>
+  <% if (a.portada) { %><div class="svc-photo"><img src="<%= a.portada %>" alt=""></div><% } %>
+  <p style="font-size:1.12rem"><%= a.resumen %></p>
+  <%- markdown(a.cuerpo) %>
+</article>
+<% if (relacionados.length) { %>
+<section class="section"><h2>Seguí leyendo</h2><div class="cards"><% relacionados.forEach(x => { %><article class="card"><div class="card__img"><img src="<%= x.portada %>" alt="" loading="lazy"></div><div class="card__body"><h3><a href="/blog/<%= x.slug %>"><%= x.titulo %></a></h3></div></article><% }) %></div></section>
+<% } %>
+<%- include('../partials/pie') %>

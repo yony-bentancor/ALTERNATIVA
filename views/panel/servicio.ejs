@@ -1,0 +1,33 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: s.titulo, sub: (cat ? cat.nombre : '') + ' · ' + duracion(s.duracion), volver: '/panel/servicios', acciones: `<a class="btn btn--primary btn--sm" href="/panel/servicios/${s.id}/editar">Editar</a><a class="btn btn--ghost btn--sm" href="/servicios/${e.slug}/${s.slug}" target="_blank">Ver público</a>` }) %>
+<% if (s.estado !== 'activo') { %><div class="flash flash--warn" style="margin-bottom:12px"><%- icono('info', { tam: 18 }) %><span>Estado: <b><%= { pausado: 'Pausado', en_revision: 'En revisión', suspendido: 'Suspendido' }[s.estado] %></b><%= s.motivoEstado ? ' · ' + s.motivoEstado : '' %></span></div><% } %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Visitas (90 días)', valor: perf ? perf.vistas : 0 }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reservas (90 días)', valor: perf ? perf.reservas : 0, sub: 'conversión ' + String(perf ? perf.conversion : 0).replace('.', ',') + '%' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ingresos (90 días)', valor: pesos(perf ? perf.ingresos : 0) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reputación', valor: s.rating.cant ? '★ ' + fRating(s.rating.prom) : '—', sub: s.rating.cant + ' reseñas' }) %>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Precio</h2>
+    <div class="summary">
+      <div class="summary__row"><span>Tu precio</span><span><%= pesos(d.subtotal) %></span></div>
+      <div class="summary__row"><span>Tarifa de Alternativa (<%= fPct(com.tasa) %> · <%= com.regla %>)</span><span>+ <%= pesos(d.tarifa) %></span></div>
+      <div class="summary__row summary__row--total"><span>Precio que ve el cliente</span><span><%= pesos(d.total) %></span></div>
+      <div class="summary__row muted"><span>Comisión estimada de Mercado Pago</span><span>− <%= pesos(d.procesador) %></span></div>
+      <div class="summary__row"><b>Recibís (estimado)</b><b><%= pesos(d.recibeEspecialista) %></b></div>
+    </div>
+    <div class="btnbar">
+      <% if (!['suspendido','en_revision'].includes(s.estado)) { %><form method="post" action="/panel/servicios/<%= s.id %>/estado"><%- include('../partials/csrf') %><button class="btn btn--ghost" type="submit"><%= s.estado === 'activo' ? 'Pausar' : 'Publicar' %></button></form><% } %>
+      <form method="post" action="/panel/servicios/<%= s.id %>/eliminar" data-confirm="¿Eliminar este servicio? Si tiene reservas, se pausa en lugar de borrarse."><%- include('../partials/csrf') %><button class="btn btn--danger" type="submit">Eliminar</button></form>
+    </div>
+  </section>
+  <section class="panel"><h2>Fotos del servicio</h2>
+    <div class="media-grid"><% (s.fotos || []).forEach(f => { %><div class="media-item"><img src="<%= f %>" alt=""><div class="media-item__bar"><form method="post" action="/panel/servicios/<%= s.id %>/fotos" enctype="multipart/form-data" data-confirm="¿Quitar esta foto?"><%- include('../partials/csrf') %><input type="hidden" name="quitar" value="<%= f %>"><button class="btn btn--text btn--sm" type="submit">Quitar</button></form></div></div><% }) %></div>
+    <% if ((s.fotos || []).length < 6) { %><form method="post" action="/panel/servicios/<%= s.id %>/fotos" enctype="multipart/form-data" class="row" style="margin-top:10px"><%- include('../partials/csrf') %><input type="file" name="archivo" accept="image/jpeg,image/png,image/webp" required style="max-width:260px"><button class="btn btn--sm" type="submit">Agregar foto</button></form><% } %>
+  </section>
+</div>
+<section class="panel" style="margin-top:16px"><div class="panel__title"><h2>Reseñas recientes</h2><a href="/panel/resenas?servicio=<%= s.id %>">Ver todas</a></div>
+  <% resenas.forEach(rv => { %><article class="review"><div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div><% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %></article><% }) %>
+  <% if (!resenas.length) { %><p class="muted">Todavía no hay reseñas.</p><% } %>
+</section>
+<%- include('../partials/pie') %>

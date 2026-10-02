@@ -1,0 +1,2 @@
+<%# Pestañas. Recibe: items [[clave, href, texto, cantidad]], actual %>
+<nav class="tabs" aria-label="Secciones"><% items.forEach(([k, href, txt, n]) => { %><a class="tabs__item<%= actual === k ? ' is-active' : '' %>" href="<%= href %>"<%- actual === k ? ' aria-current="page"' : '' %>><%= txt %><% if (n) { %> <span class="tabs__count"><%= n %></span><% } %></a><% }) %></nav>

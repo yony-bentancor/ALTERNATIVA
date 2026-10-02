@@ -1,0 +1,9 @@
+<%- include('../partials/head') %>
+<section class="errorpage">
+  <p class="errorpage__code">500</p>
+  <h1>Algo salió mal</h1>
+  <p class="muted"><%= typeof mensaje !== 'undefined' && mensaje ? mensaje : 'Ocurrió un error inesperado. Ya lo registramos; probá de nuevo en unos minutos.' %></p>
+  <div class="btnbar" style="justify-content:center"><a class="btn btn--primary" href="/">Ir al inicio</a><a class="btn btn--ghost" href="/buscar">Buscar servicios</a></div>
+  <% if (typeof detalle !== 'undefined' && detalle) { %><pre class="code" style="text-align:left;margin-top:24px"><%= detalle %></pre><% } %>
+</section>
+<%- include('../partials/pie') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <h1><%= tipo === 'especialista' ? 'Registrate como especialista' : 'Crear cuenta' %></h1>
+  <p class="muted"><%= tipo === 'especialista' ? 'Primero tu cuenta; después armamos tu ficha paso a paso.' : 'Es gratis y lleva un minuto.' %></p>
+  <% if (errores.length) { %><div class="flash flash--error" role="alert"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+  <form method="post" action="/registro" class="stack" style="margin-top:12px">
+    <%- include('../partials/csrf') %><input type="hidden" name="tipo" value="<%= tipo %>">
+    <div class="field"><label for="r-n">Nombre y apellido</label><input id="r-n" name="nombre" required autocomplete="name" value="<%= datos.nombre || '' %>"></div>
+    <div class="field"><label for="r-e">Correo electrónico</label><input id="r-e" name="email" type="email" required autocomplete="email" value="<%= datos.email || '' %>"></div>
+    <div class="field"><label for="r-t">Celular <span class="muted">(opcional)</span></label><input id="r-t" name="telefono" type="tel" inputmode="tel" placeholder="099 123 456" value="<%= datos.telefono || '' %>"><p class="field__hint">Para avisos de tus reservas por WhatsApp, si los activás.</p></div>
+    <div class="field"><label for="r-d">Departamento <span class="muted">(opcional)</span></label><select id="r-d" name="departamento"><option value="">Elegí…</option><% DEPARTAMENTOS.forEach(d => { %><option<%= datos.departamento === d ? ' selected' : '' %>><%= d %></option><% }) %></select></div>
+    <div class="field"><label for="r-p">Contraseña</label><input id="r-p" name="clave" type="password" required minlength="8" autocomplete="new-password"><p class="field__hint">Mínimo 8 caracteres.</p></div>
+    <div class="field"><label for="r-p2">Repetí la contraseña</label><input id="r-p2" name="clave2" type="password" required minlength="8" autocomplete="new-password"></div>
+    <label class="check"><input type="checkbox" name="acepto" value="1"<%= datos.acepto ? ' checked' : '' %>><span>Acepto los <a href="/terminos" target="_blank">términos</a> y la <a href="/privacidad" target="_blank">política de privacidad</a>.</span></label>
+    <label class="check"><input type="checkbox" name="novedades" value="1"><span>Quiero recibir novedades y promociones <small class="muted">(podés cambiarlo cuando quieras)</small></span></label>
+    <button class="btn btn--primary btn--block btn--lg" type="submit">Crear cuenta</button>
+  </form>
+  <p class="auth__alt">¿Ya tenés cuenta? <a href="/ingresar">Ingresar</a></p>
+</div>
+<%- include('../partials/pie') %>

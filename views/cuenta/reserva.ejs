@@ -1,0 +1,73 @@
+<%- include('../partials/head') %>
+<% const u = e.ubicacion || {}; %>
+<% if (nueva) { %>
+<div class="result-hero">
+  <div class="result-hero__icon result-hero__icon--ok"><%- icono('checkCircle', { tam: 36 }) %></div>
+  <h1><%= r.estado === 'confirmada' ? '¡Reserva confirmada!' : 'Pago recibido' %></h1>
+  <p class="muted"><%= r.estado === 'confirmada' ? 'Te mandamos la confirmación por email. Te recordamos la sesión el día anterior.' : r.foto.especialista + ' va a confirmar la reserva a la brevedad.' %></p>
+</div>
+<% } %>
+<%- include('../partials/encabezado', { t: r.foto.servicio, sub: 'Reserva ' + r.codigo, volver: '/mi/reservas' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel">
+      <p><%- include('../partials/estado', { estado: r.estado }) %><% if (r.incidencia && r.incidencia.abierta) { %> <span class="pill pill--danger">Incidencia en revisión</span><% } %></p>
+      <dl class="dl">
+        <div><dt>Especialista</dt><dd><a href="/especialistas/<%= r.foto.especialistaSlug %>"><%= r.foto.especialista %></a></dd></div>
+        <div><dt>Cuándo</dt><dd><b><%= fFechaHora(r.inicio) %></b> · <%= duracion(r.foto.duracion) %></dd></div>
+        <div><dt>Modalidad</dt><dd><%= MODALIDADES[r.modalidad].texto %></dd></div>
+        <% if (r.modalidad === 'presencial') { %><div><dt>Dirección</dt><dd><%= confirmada ? r.lugar.direccion : 'Se muestra al confirmarse el pago' %><% if (r.lugar.referencia) { %><br><span class="muted small"><%= r.lugar.referencia %></span><% } %></dd></div><% } %>
+        <% if (r.modalidad === 'domicilio') { %><div><dt>Tu dirección</dt><dd><%= r.lugar.direccion %></dd></div><% } %>
+        <% if (r.modalidad === 'online') { %><div><dt>Enlace</dt><dd><%- confirmada && r.lugar.enlaceOnline ? `<a href="${esc(r.lugar.enlaceOnline)}" target="_blank" rel="noopener">${esc(r.lugar.enlaceOnline)}</a>` : 'El especialista te lo comparte antes de la sesión.' %></dd></div><% } %>
+        <% if (r.notasUsuario) { %><div><dt>Tus notas</dt><dd><%= r.notasUsuario %></dd></div><% } %>
+        <% if (r.reprogramadaDesde) { %><div><dt>Reprogramación</dt><dd>Esta reserva se reprogramó <%= r.reprogramaciones %> <%= r.reprogramaciones === 1 ? 'vez' : 'veces' %>.</dd></div><% } %>
+      </dl>
+    </section>
+
+    <% if (r.modalidad === 'presencial' && confirmada && Number.isFinite(r.lugar.lat)) { %>
+    <section><h2>Cómo llegar</h2><%- include('../partials/mapa', { lugar: { lat: r.lugar.lat, lng: r.lugar.lng }, texto: r.lugar.direccion, exacto: true }) %></section>
+    <% } %>
+
+    <% if (reprogramadaA) { %><div class="panel panel--blue">Esta reserva se reprogramó. <a href="/mi/reservas/<%= reprogramadaA.id %>">Ver la nueva (<%= fFechaHora(reprogramadaA.inicio) %>)</a></div><% } %>
+
+    <% if (r.cancelacion) { %>
+    <section class="panel panel--soft"><h3>Cancelación</h3><p style="margin:0"><%= fFechaHora(r.cancelacion.fecha) %> · <%= r.cancelacion.rol === 'usuario' ? 'Cancelaste vos' : r.cancelacion.rol === 'especialista' ? 'Canceló el especialista' : 'Gestión de Alternativa' %><% if (r.cancelacion.motivo) { %> · “<%= r.cancelacion.motivo %>”<% } %></p>
+      <% reembolsos.forEach(rb => { %><p style="margin:6px 0 0">Reembolso <b><%= pesos(rb.monto) %></b> (<%= rb.porcentaje %>%) · <%= rb.estado === 'procesado' ? 'procesado el ' + fCorta(rb.procesadoEn) : rb.estado === 'fallido' ? 'en gestión por nuestro equipo' : rb.estado %></p><% }) %>
+    </section>
+    <% } %>
+
+    <% if (resena) { %>
+    <section class="panel"><h3>Tu reseña</h3><%- include('../partials/estrellas', { n: resena.puntaje }) %><p><%= resena.comentario %></p><% if (resena.respuesta) { %><div class="review__reply"><b>Respuesta:</b> <%= resena.respuesta.texto %></div><% } %><a class="small" href="/mi/resenas/<%= resena.id %>/editar">Editar</a></section>
+    <% } %>
+
+    <section><h3>Historial</h3><ul class="timeline"><% (r.historial || []).forEach(h => { %><li><b><%= (ESTADOS_RESERVA[h.estado] || {}).texto || h.estado %></b> · <span class="muted"><%= fFechaHora(h.fecha) %></span><% if (h.nota) { %><br><span class="small"><%= h.nota %></span><% } %></li><% }) %></ul></section>
+
+    <% if (['realizada','confirmada','pagada','ausencia_especialista'].includes(r.estado) && !(r.incidencia && r.incidencia.abierta)) { %>
+    <details class="panel"><summary style="cursor:pointer"><b>Reportar un problema</b> <span class="muted small">— lo revisamos antes de cerrar la reserva</span></summary>
+      <form method="post" action="/mi/reservas/<%= r.id %>/problema" style="margin-top:10px"><%- include('../partials/csrf') %><div class="field"><label for="pb">¿Qué pasó?</label><textarea id="pb" name="nota" required minlength="10" rows="3"></textarea></div><button class="btn btn--ghost" type="submit">Enviar reporte</button></form>
+    </details>
+    <% } %>
+  </div>
+
+  <aside>
+    <div class="panel stack">
+      <div class="summary">
+        <div class="summary__row"><span>Servicio</span><span><%= pesos(r.foto.subtotal) %></span></div>
+        <% if (r.foto.descuento) { %><div class="summary__row" style="color:var(--ok)"><span><%= r.foto.promocion || 'Descuento' %></span><span>−<%= pesos(r.foto.descuento) %></span></div><% } %>
+        <div class="summary__row"><span>Tarifa de servicio</span><span><%= pesos(r.foto.total - r.foto.subtotal + r.foto.descuento) %></span></div>
+        <div class="summary__row summary__row--total"><span>Total</span><span><%= pesos(r.foto.total) %></span></div>
+        <% if (pago) { %><p class="small muted" style="margin:4px 0 0">Pago <%= (ESTADOS_PAGO[pago.estado] || pago.estado).toLowerCase() %><%= pago.pagadoEn ? ' el ' + fCorta(pago.pagadoEn) : '' %></p><% } %>
+      </div>
+      <% if (r.estado === 'pendiente') { %><a class="btn btn--primary btn--block" href="/pago/<%= r.id %>">Pagar ahora</a><% } %>
+      <% if (['pagada','confirmada'].includes(r.estado)) { %><a class="btn btn--ghost btn--block" href="/mi/reservas/<%= r.id %>/calendario.ics"><%- icono('calendar', { tam: 18 }) %> Agregar a mi calendario</a><% } %>
+      <% if (r.estado === 'realizada' && !r.resenada) { %><a class="btn btn--lav btn--block" href="/mi/reservas/<%= r.id %>/valorar"><%- icono('star', { tam: 18 }) %> Valorar sesión</a><% } %>
+      <% if (['realizada','cancelada_usuario','cancelada_especialista'].includes(r.estado)) { %><a class="btn btn--primary btn--block" href="/mi/reservas/<%= r.id %>/volver"><%- icono('repeat', { tam: 18 }) %> Volver a reservar</a><% } %>
+      <a class="btn btn--ghost btn--block" href="<%= conversacion ? '/mi/mensajes/' + conversacion.id : '/mi/mensajes/nuevo/' + r.especialistaId %>"><%- icono('chat', { tam: 18 }) %> Escribir a <%= r.foto.especialista.split(' ')[0] %></a>
+      <%- include('../partials/whatsapp', { e, wa, mensaje: `Hola ${e.nombre.split(' ')[0]}, te escribo por mi reserva ${r.codigo} del ${fFechaHora(r.inicio)}` }) %>
+      <% if (['pagada','confirmada'].includes(r.estado) && repro.ok) { %><a class="btn btn--ghost btn--block" href="/mi/reservas/<%= r.id %>/reprogramar"><%- icono('repeat', { tam: 18 }) %> Reprogramar</a><% } %>
+      <% if (puedeCancelar) { %><a class="btn btn--danger btn--block" href="/mi/reservas/<%= r.id %>/cancelar">Cancelar reserva</a><% } %>
+    </div>
+    <details class="panel small" style="margin-top:12px"><summary style="cursor:pointer">Política de cancelación de esta reserva</summary><ul class="checklist" style="margin-top:8px"><% politica.forEach(p => { %><li><span><%= p %></span></li><% }) %></ul></details>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

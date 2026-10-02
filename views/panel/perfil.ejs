@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Mi perfil', sub: 'Así te ven las personas que buscan servicios.', acciones: `<a class="btn btn--primary btn--sm" href="/panel/perfil/editar">Editar perfil</a><a class="btn btn--ghost btn--sm" href="/panel/perfil/apariencia">Apariencia</a><a class="btn btn--ghost btn--sm" href="/especialistas/${e.slug}" target="_blank">Ver ficha pública</a>` }) %>
+<div class="profile-cover" style="background-image:url('<%= e.portada || '' %>');margin:0;border-radius:var(--r-sheet)"></div>
+<div class="profile-head">
+  <% if (e.avatar) { %><img class="avatar avatar--xl" src="<%= e.avatar %>" alt=""><% } else { %><a class="avatar avatar--xl avatar--initial" href="/panel/perfil/multimedia/subir?tipo=perfil" title="Subir foto"><%= e.nombre[0] %></a><% } %>
+  <div><h2 style="margin:6px 0 2px"><%= e.nombre %></h2><p class="muted" style="margin:0"><%= e.titular || 'Sin frase de presentación' %></p>
+    <div class="profile-badges"><% if (e.verificacion && e.verificacion.estado === 'verificada') { %><span class="badge badge--verified"><%- icono('shield', { tam: 14 }) %>Identidad verificada</span><% } else { %><a class="badge badge--declared" href="/panel/verificacion">Identidad sin verificar</a><% } %><% categorias.forEach(c => { %><span class="chip"><%= c.nombre %></span><% }) %></div></div>
+</div>
+<div class="grid-2" style="margin-top:18px;align-items:start">
+  <section class="panel"><h3>Presentación</h3><div class="prose small"><%- markdown(e.bio || '_Todavía no escribiste tu presentación._') %></div>
+    <dl class="dl">
+      <div><dt>Experiencia</dt><dd><%= e.anios || 0 %> años</dd></div>
+      <div><dt>Modalidades</dt><dd><%= (e.modalidades || []).map(m => MODALIDADES[m].texto).join(', ') %></dd></div>
+      <div><dt>Ubicación</dt><dd><%= [e.ubicacion?.barrio, e.ubicacion?.ciudad, e.ubicacion?.departamento].filter(Boolean).join(', ') || '—' %></dd></div>
+      <div><dt>Dirección (privada)</dt><dd><%= e.ubicacion?.direccion || '—' %></dd></div>
+      <div><dt>WhatsApp</dt><dd><%= e.whatsapp || '—' %> <% if (e.mostrarWhatsapp) { %><span class="pill pill--ok">Visible según la política</span><% } else { %><span class="pill">Oculto</span><% } %></dd></div>
+      <div><dt>Idiomas</dt><dd><%= (e.idiomas || []).join(', ') %></dd></div>
+    </dl>
+  </section>
+  <div class="stack-lg">
+    <section class="panel"><div class="panel__title"><h3>Completitud</h3><span class="pill pill--brand"><%= comp.porcentaje %>%</span></div><ul class="checklist"><% comp.checks.forEach(c => { %><li><a class="<%= c.ok ? 'is-ok' : '' %>" href="<%= c.enlace %>"><%- icono(c.ok ? 'checkCircle' : 'chevronRight', { tam: 18 }) %><%= c.texto %></a></li><% }) %></ul></section>
+    <section class="panel"><div class="panel__title"><h3>Fotos (<%= galeria.length %>)</h3><a href="/panel/perfil/multimedia">Gestionar</a></div><div class="gallery"><% galeria.slice(0, 8).forEach(m => { %><a href="<%= m.url %>" target="_blank"><img src="<%= m.url %>" alt="" loading="lazy"></a><% }) %></div><% if (e.video) { %><p class="small" style="margin-top:8px"><%- icono('video', { tam: 16 }) %> Tenés un video de presentación.</p><% } %></section>
+    <% if ((e.modalidades || []).includes('presencial') && Number.isFinite(e.ubicacion?.lat)) { %><section><h3>Tu ubicación en el mapa</h3><%- include('../partials/mapa', { lugar: { lat: e.ubicacion.lat, lng: e.ubicacion.lng }, texto: e.ubicacion.direccion || e.ubicacion.barrio, exacto: true }) %><p class="small muted">Los clientes ven solo la zona aproximada hasta confirmar la reserva.</p></section><% } %>
+  </div>
+</div>
+<%- include('../partials/pie') %>

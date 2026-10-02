@@ -1,0 +1,3 @@
+<%# Barras horizontales. Recibe: filas [{texto, valor, mostrar}] %>
+<% const mx = Math.max(1, ...filas.map((f) => f.valor)); %>
+<ul class="hbars"><% filas.forEach((f) => { %><li><span class="hbars__label"><%= f.texto %></span><span class="hbars__track"><span class="hbars__fill" style="width:<%= Math.round((f.valor / mx) * 100) %>%"></span></span><span class="hbars__value"><%= f.mostrar ?? f.valor %></span></li><% }) %></ul>

@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Liquidaciones', sub: 'Solo para cobros "Alternativa cobra" y "Cobra el especialista". Con split automático la pasarela ya dividió el dinero.' }) %>
+<section class="panel" style="margin-bottom:16px">
+  <div class="panel__title"><h2>Listo para liquidar (<%= previa.length %>)</h2>
+    <% if (previa.length) { %><form method="post" action="/admin/liquidaciones/generar" data-confirm="¿Generar las liquidaciones de todos los pagos cerrados?"><%- include('../partials/csrf') %><button class="btn btn--primary btn--sm" type="submit">Generar liquidaciones</button></form><% } %></div>
+  <% if (!previa.length) { %><p class="muted">No hay pagos cerrados pendientes de liquidar.</p><% } else { %>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Especialista</th><th>Tipo</th><th class="num">Pagos</th><th class="num">Bruto</th><th class="num">Comisión</th><th class="num">Reembolsos</th><th class="num">A transferir</th></tr></thead><tbody>
+  <% previa.forEach(g => { %><tr><td><a href="/admin/especialistas/<%= g.especialistaId %>"><%= espMap.get(g.especialistaId)?.nombre %></a></td><td class="small"><%= g.modelo === 'offline' ? 'Debe la comisión' : 'Le transferimos' %></td><td class="num"><%= g.pagos.length %></td><td class="num"><%= pesos(g.bruto) %></td><td class="num"><%= pesos(g.comision) %></td><td class="num"><%= pesos(g.reembolsos) %></td><td class="num"><b><%= pesos(g.modelo === 'offline' ? g.comision : g.neto) %></b></td></tr><% }) %>
+  </tbody></table></div><% } %>
+</section>
+<section class="panel"><h2>Historial</h2>
+  <% if (!lista.length) { %><p class="muted">Todavía no hay liquidaciones.</p><% } %>
+  <div class="stack"><% lista.forEach(l => { const e = espMap.get(l.especialistaId); %>
+    <div class="row row--between" style="border-bottom:1px solid var(--line);padding:10px 0">
+      <span><b>N.º <%= l.numero %></b> · <a href="/admin/especialistas/<%= l.especialistaId %>"><%= e?.nombre %></a><br><span class="small muted"><%= l.direccion === 'a_plataforma' ? 'Comisión a cobrar' : 'Transferencia al especialista' %> · <%= l.reservas %> reservas · bruto <%= pesos(l.bruto) %> · comisión <%= pesos(l.comision) %> · hasta <%= fCorta(l.hasta) %></span>
+      <% if (e && e.facturacion && e.facturacion.metodo === 'banco' && l.estado === 'pendiente') { %><br><span class="small">Cuenta: <%= e.facturacion.banco %> <%= e.facturacion.tipoCuenta %> <%= e.facturacion.cuenta %> · <%= e.facturacion.titular %></span><% } %>
+      <% if (l.referencia) { %><br><span class="small">Ref.: <%= l.referencia %> · <%= fFecha(l.pagadaEn) %></span><% } %></span>
+      <span class="row"><b><%= pesos(l.neto) %></b><%- include('../partials/pill', { texto: l.estado, tono: { pagada: 'ok', anulada: '', pendiente: 'warn' }[l.estado] }) %>
+        <% if (l.estado === 'pendiente') { %>
+        <form method="post" action="/admin/liquidaciones/<%= l.id %>/pagar" class="row"><%- include('../partials/csrf') %><input name="referencia" placeholder="N.º de transferencia" aria-label="Referencia" style="width:160px"><button class="btn btn--primary btn--sm" type="submit">Marcar pagada</button></form>
+        <form method="post" action="/admin/liquidaciones/<%= l.id %>/anular" data-confirm="¿Anular la liquidación?"><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit">Anular</button></form>
+        <% } %></span>
+    </div><% }) %></div>
+</section>
+<%- include('../partials/pie') %>

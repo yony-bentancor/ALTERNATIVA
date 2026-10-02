@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Contenido', sub: 'Blog, preguntas frecuentes y páginas institucionales', acciones: '<a class="btn btn--primary btn--sm" href="/admin/contenido/nuevo?tipo=' + tipo + '">' + icono('plus', { tam: 16 }) + ' Nuevo</a>' }) %>
+<%- include('../partials/pestanias', { items: [['articulo', '?tipo=articulo', 'Blog', cuentas.articulo], ['faq', '?tipo=faq', 'Preguntas frecuentes', cuentas.faq], ['pagina', '?tipo=pagina', 'Páginas', cuentas.pagina]], actual: tipo }) %>
+<% const url = (c) => c.tipo === 'articulo' ? '/blog/' + c.slug : c.tipo === 'faq' ? '/preguntas-frecuentes' : '/' + c.slug; %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Título</th><th><%= tipo === 'faq' ? 'Sección' : 'Enlace' %></th><th>Estado</th><th>Actualizado</th><th></th></tr></thead>
+  <tbody><% lista.forEach(c => { %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><% if (c.portada) { %><img class="mini-thumb" src="<%= c.portada %>" alt=""><% } %><a href="/admin/contenido/<%= c.id %>"><b><%= c.titulo %></b></a></div></td>
+    <td class="small"><%= tipo === 'faq' ? c.categoria : '' %><% if (tipo !== 'faq') { %><a href="<%= url(c) %>" target="_blank"><%= url(c) %></a><% } %></td>
+    <td><%- include('../partials/pill', { texto: c.estado === 'publicado' ? 'Publicado' : 'Borrador', tono: c.estado === 'publicado' ? 'ok' : '' }) %></td>
+    <td class="small"><%= fRelativa(c.actualizado || c.creado) %></td>
+    <td><form method="post" action="/admin/contenido/<%= c.id %>/eliminar" data-confirm="¿Eliminar «<%= c.titulo %>»?"><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit" aria-label="Eliminar"><%- icono('trash', { tam: 16 }) %></button></form></td>
+  </tr><% }) %></tbody>
+</table></div>
+<form class="panel row" method="post" action="/admin/contenido/imagen" enctype="multipart/form-data" style="margin-top:16px"><%- include('../partials/csrf') %><input type="hidden" name="volver" value="/admin/contenido?tipo=<%= tipo %>"><b>Subir imagen</b><input type="file" name="archivo" accept="image/*" required aria-label="Imagen"><button class="btn btn--ghost btn--sm" type="submit"><%- icono('upload', { tam: 16 }) %> Subir</button><span class="small muted">Te devolvemos la dirección para usarla como portada o dentro del texto.</span></form>
+<%- include('../partials/pie') %>

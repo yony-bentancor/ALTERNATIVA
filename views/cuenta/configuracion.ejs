@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Configuración' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'configuracion' }) %>
+<% const av = (usuario.preferencias && usuario.preferencias.avisos) || {}; %>
+<div class="grid-2" style="align-items:start">
+  <form method="post" action="/mi/configuracion/avisos" class="panel">
+    <%- include('../partials/csrf') %>
+    <h2>Avisos</h2>
+    <p class="small muted">Los avisos de reservas, pagos y reembolsos siempre llegan por email.</p>
+    <label class="check"><input type="checkbox" name="email" value="1"<%= av.email !== false ? ' checked' : '' %>><span>Email<small class="muted">Recordatorios, mensajes y novedades de tus reservas.</small></span></label>
+    <label class="check"><input type="checkbox" name="push" value="1"<%= av.push !== false ? ' checked' : '' %>><span>Notificaciones en este dispositivo</span></label>
+    <label class="check"><input type="checkbox" name="whatsapp" value="1"<%= av.whatsapp ? ' checked' : '' %>><span>WhatsApp<small class="muted">Confirmaciones y recordatorios al celular <%= usuario.telefono || '(cargalo en tu perfil)' %>.<%= whatsappActivo ? '' : ' El envío automático se activa cuando Alternativa configure WhatsApp Business.' %></small></span></label>
+    <label class="check"><input type="checkbox" name="marketing" value="1"<%= av.marketing ? ' checked' : '' %>><span>Promociones y novedades</span></label>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Guardar</button><button type="button" class="btn btn--ghost" data-push-enable>Activar notificaciones aquí</button></div>
+  </form>
+  <form method="post" action="/mi/configuracion/contrasena" class="panel">
+    <%- include('../partials/csrf') %>
+    <h2>Contraseña</h2>
+    <div class="field"><label for="cc-a">Contraseña actual</label><input id="cc-a" name="actual" type="password" required autocomplete="current-password"></div>
+    <div class="field"><label for="cc-n">Nueva contraseña</label><input id="cc-n" name="nueva" type="password" required minlength="8" autocomplete="new-password"></div>
+    <div class="field"><label for="cc-n2">Repetila</label><input id="cc-n2" name="nueva2" type="password" required minlength="8" autocomplete="new-password"></div>
+    <button class="btn btn--primary" type="submit">Cambiar contraseña</button>
+  </form>
+</div>
+<%- include('../partials/pie') %>

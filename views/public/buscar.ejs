@@ -1,0 +1,55 @@
+<%- include('../partials/head') %>
+<% const r = resultado; const filtrosActivos = ['departamento','modalidad','cuando','precioMax','valoracion','verificado'].filter(k => query[k]).length; %>
+<form action="/buscar" class="ask" role="search" style="margin:0 0 12px">
+  <span class="ask__icon"><%- icono('search', { tam: 22 }) %></span>
+  <input type="search" name="q" value="<%= p.q %>" placeholder="Masaje hoy, reiki online, yoga en Pocitos…" aria-label="Buscar">
+  <% ['categoria','departamento','modalidad','cuando','orden','lat','lng'].forEach(k => { if (query[k]) { %><input type="hidden" name="<%= k %>" value="<%= query[k] %>"><% } }) %>
+  <button class="btn btn--primary" type="submit">Buscar</button>
+</form>
+
+<nav class="filters" aria-label="Filtros rápidos">
+  <a class="filter-chip<%= query.cuando === 'hoy' ? ' is-on' : '' %>" href="/buscar<%= qs({ cuando: query.cuando === 'hoy' ? '' : 'hoy', page: '' }) %>">Hoy</a>
+  <a class="filter-chip<%= query.cuando === 'manana' ? ' is-on' : '' %>" href="/buscar<%= qs({ cuando: query.cuando === 'manana' ? '' : 'manana', page: '' }) %>">Mañana</a>
+  <a class="filter-chip<%= query.cuando === 'semana' ? ' is-on' : '' %>" href="/buscar<%= qs({ cuando: query.cuando === 'semana' ? '' : 'semana', page: '' }) %>">Esta semana</a>
+  <% Object.entries(MODALIDADES).forEach(([k, m]) => { %><a class="filter-chip<%= query.modalidad === k ? ' is-on' : '' %>" href="/buscar<%= qs({ modalidad: query.modalidad === k ? '' : k, page: '' }) %>"><%- icono(m.icono, { tam: 15 }) %><%= m.texto %></a><% }) %>
+  <a class="filter-chip<%= query.verificado ? ' is-on' : '' %>" href="/buscar<%= qs({ verificado: query.verificado ? '' : '1', page: '' }) %>"><%- icono('shield', { tam: 15 }) %>Verificados</a>
+  <form action="/buscar" style="display:contents"><% Object.entries(query).forEach(([k, v]) => { if (!['lat','lng','orden','page'].includes(k)) { %><input type="hidden" name="<%= k %>" value="<%= v %>"><% } }) %><input type="hidden" name="lat"><input type="hidden" name="lng"><input type="hidden" name="orden" value="distancia"><button type="button" class="filter-chip<%= query.lat ? ' is-on' : '' %>" data-near><%- icono('pin', { tam: 15 }) %>Cerca de mí</button></form>
+</nav>
+
+<details class="filter-sheet panel"<%= filtrosActivos > 1 ? ' open' : '' %>>
+  <summary class="row row--between"><strong><%- icono('filter', { tam: 18 }) %> Filtros<% if (filtrosActivos) { %> <span class="pill pill--info"><%= filtrosActivos %></span><% } %></strong><span class="muted small">Departamento, precio, valoración, orden</span></summary>
+  <form class="filter-sheet__body" action="/buscar">
+    <input type="hidden" name="q" value="<%= p.q %>">
+    <div class="grid-2">
+      <div class="field"><label for="f-cat">Categoría</label><select id="f-cat" name="categoria"><option value="">Todas</option><% categorias.forEach(c => { %><option value="<%= c.slug %>"<%= (query.categoria === c.slug) ? ' selected' : '' %>><%= c.nombre %></option><% }) %></select></div>
+      <div class="field"><label for="f-dep">Departamento</label><select id="f-dep" name="departamento"><option value="">Todo Uruguay</option><% DEPARTAMENTOS.forEach(d => { %><option<%= query.departamento === d ? ' selected' : '' %>><%= d %></option><% }) %></select></div>
+      <div class="field"><label for="f-mod">Modalidad</label><select id="f-mod" name="modalidad"><option value="">Todas</option><% Object.entries(MODALIDADES).forEach(([k, m]) => { %><option value="<%= k %>"<%= query.modalidad === k ? ' selected' : '' %>><%= m.texto %></option><% }) %></select></div>
+      <div class="field"><label for="f-cu">Cuándo</label><select id="f-cu" name="cuando"><option value="">Cualquier día</option><option value="hoy"<%= query.cuando === 'hoy' ? ' selected' : '' %>>Hoy</option><option value="manana"<%= query.cuando === 'manana' ? ' selected' : '' %>>Mañana</option><option value="semana"<%= query.cuando === 'semana' ? ' selected' : '' %>>Esta semana</option></select></div>
+      <div class="field"><label for="f-pm">Precio máximo</label><input id="f-pm" name="precioMax" type="number" min="0" step="100" inputmode="numeric" value="<%= query.precioMax || '' %>" placeholder="Ej. 1500"></div>
+      <div class="field"><label for="f-val">Valoración</label><select id="f-val" name="valoracion"><option value="">Cualquiera</option><option value="4.5"<%= query.valoracion === '4.5' ? ' selected' : '' %>>4,5 o más</option><option value="4"<%= query.valoracion === '4' ? ' selected' : '' %>>4 o más</option><option value="3"<%= query.valoracion === '3' ? ' selected' : '' %>>3 o más</option></select></div>
+      <div class="field"><label for="f-or">Ordenar por</label><select id="f-or" name="orden"><option value="">Relevancia</option><option value="valoracion"<%= query.orden === 'valoracion' ? ' selected' : '' %>>Mejor valorados</option><option value="precio"<%= query.orden === 'precio' ? ' selected' : '' %>>Menor precio</option><% if (query.lat) { %><option value="distancia"<%= query.orden === 'distancia' ? ' selected' : '' %>>Más cerca</option><% } %></select></div>
+      <label class="check" style="align-self:end"><input type="checkbox" name="verificado" value="1"<%= query.verificado ? ' checked' : '' %>><span>Solo identidad verificada</span></label>
+    </div>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Aplicar filtros</button><a class="btn btn--ghost" href="/buscar">Limpiar</a></div>
+  </form>
+</details>
+
+<% if (r.intencion.cuando || r.intencion.cerca || r.intencion.barato || r.categoria) { %>
+<p class="intent-note"><%- icono('sparkle', { tam: 16 }) %>
+  <% if (r.categoria) { %>Mostrando <b><%= r.categoria.nombre %></b>. <% } %>
+  <% if (r.intencion.cuando) { %>Priorizamos especialistas con turnos <b><%= { hoy: 'hoy', manana: 'mañana', semana: 'esta semana' }[r.intencion.cuando] %></b>. <% } %>
+  <% if (r.intencion.cerca) { %>Ordenamos por cercanía. <% } %>
+  <% if (r.intencion.barato) { %>Priorizamos precios accesibles. <% } %>
+</p>
+<% } %>
+
+<% if (r.patrocinados.length) { %><div class="sponsored-block results"><% r.patrocinados.forEach(t => { %><%- include('../partials/tarjeta', { t }) %><% }) %></div><% } %>
+
+<p class="muted small"><%= r.total %> <%= r.total === 1 ? 'resultado' : 'resultados' %></p>
+<% if (r.items.length) { %>
+<div class="results results--grid"><% r.items.forEach(t => { %><%- include('../partials/tarjeta', { t }) %><% }) %></div>
+<%- include('../partials/paginacion', { p: { pagina: r.pagina, paginas: r.paginas } }) %>
+<% } else { %>
+<%- include('../partials/vacio', { t: 'No encontramos servicios con esos filtros', texto: 'Probá con otra palabra, quitá algún filtro o buscá en todo Uruguay.', accion: 'Ver todas las categorías', href: '/categorias', ic: 'search' }) %>
+<% } %>
+<%- include('../partials/pie') %>

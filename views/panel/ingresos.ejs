@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Ingresos', sub: 'Del ' + fFechaTexto(stats.rango.desde) + ' al ' + fFechaTexto(stats.rango.hasta), acciones: '<a class="btn btn--ghost btn--sm" href="/panel/facturacion">Resumen mensual</a>' }) %>
+<%- include('../partials/periodo', { periodo, base: '/panel/ingresos' }) %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Cobrado a clientes', valor: pesos(tot.bruto), sub: pagos.length + ' pagos' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Después de la tarifa', valor: pesos(tot.neto) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Pasarela y reembolsos', valor: '− ' + pesos(tot.comisionPasarela + tot.reembolsado), sub: pesos(tot.reembolsado) + ' reembolsado' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Te queda', valor: pesos(tot.recibido) }) %>
+</div>
+<section class="panel" style="margin-top:16px"><h2>Ingresos por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'ingresos', etiqueta: 'ingresos netos' }) %></section>
+<section class="panel" style="margin-top:16px"><h2>Pagos</h2>
+<% if (!pagos.length) { %><p class="muted">Sin pagos en el período.</p><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Fecha</th><th>Reserva</th><th>Cobro</th><th>Estado</th><th class="num">Total</th><th class="num">Tarifa</th><th class="num">Pasarela</th><th class="num">Recibís</th></tr></thead>
+  <tbody><% pagos.forEach(x => { const r = rs.get(x.reservaId); %><tr>
+    <td><%= fCorta(x.creado) %></td>
+    <td><% if (r) { %><a href="/panel/reservas/<%= r.id %>"><%= r.foto.usuario %></a><br><span class="small muted"><%= r.foto.servicio %></span><% } else { %>—<% } %></td>
+    <td class="small"><%= MODELOS_COBRO[x.modeloCobro]?.corto || x.modeloCobro %></td>
+    <td><span class="pill"><%= ESTADOS_PAGO[x.estado] || x.estado %></span></td>
+    <td class="num"><%= pesos(x.monto) %></td><td class="num">− <%= pesos(x.comision) %></td><td class="num">− <%= pesos(x.comisionPasarela || x.comisionPasarelaEstimada || 0) %></td>
+    <td class="num"><b><%= pesos(x.montoEspecialista - (x.comisionPasarela || 0) - (x.reembolsado ? Math.min(x.reembolsado, x.montoEspecialista) : 0)) %></b></td>
+  </tr><% }) %></tbody>
+</table></div><% } %>
+</section>
+<% if (reembolsos.length) { %><section class="panel" style="margin-top:16px"><h2>Reembolsos</h2><ul class="list"><% reembolsos.forEach(rb => { %><li class="row row--between"><span><%= fCorta(rb.creado) %> · <%= rb.porcentaje %>% · <span class="small muted"><%= rb.motivo || '' %></span></span><span><span class="pill"><%= rb.estado %></span> <b class="money-neg">− <%= pesos(rb.especialistaRevertido || 0) %></b></span></li><% }) %></ul></section><% } %>
+<section class="panel" style="margin-top:16px"><h2>Liquidaciones</h2>
+  <p class="small muted">Con Mercado Pago vinculado cobrás al instante (split). Las liquidaciones solo aplican a cobros por la plataforma o pagos en el lugar.</p>
+  <% if (!liquidaciones.length) { %><p class="muted">No tenés liquidaciones.</p><% } %>
+  <ul class="list"><% liquidaciones.forEach(l => { %><li class="row row--between"><span><b>#<%= l.numero %></b> · <%= fCorta(l.desde) %> – <%= fCorta(l.hasta) %><br><span class="small muted"><%= l.direccion === 'a_plataforma' ? 'Comisión a pagar a Alternativa' : 'Transferencia a tu cuenta' %></span></span><span><span class="pill<%= l.estado === 'pagada' ? ' pill--ok' : '' %>"><%= l.estado %></span> <b><%= pesos(l.neto) %></b></span></li><% }) %></ul>
+</section>
+<%- include('../partials/pie') %>

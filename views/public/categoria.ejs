@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<% const r = resultado; %>
+<nav class="breadcrumb" aria-label="Ruta"><a href="/">Inicio</a><span>›</span><a href="/categorias">Categorías</a><span>›</span><span><%= categoria.nombre %></span></nav>
+<header class="cat-hero"><img src="<%= categoria.imagen %>" alt=""><div class="cat-hero__txt"><h1><%= categoria.nombre %></h1><p><%= categoria.descripcion %></p></div></header>
+
+<nav class="filters" aria-label="Filtros">
+  <% Object.entries(MODALIDADES).forEach(([k, m]) => { %><a class="filter-chip<%= query.modalidad === k ? ' is-on' : '' %>" href="/<%= categoria.slug %><%= qs({ modalidad: query.modalidad === k ? '' : k, page: '' }) %>"><%- icono(m.icono, { tam: 15 }) %><%= m.texto %></a><% }) %>
+  <a class="filter-chip<%= query.cuando === 'hoy' ? ' is-on' : '' %>" href="/<%= categoria.slug %><%= qs({ cuando: query.cuando === 'hoy' ? '' : 'hoy', page: '' }) %>">Con turno hoy</a>
+  <form action="/<%= categoria.slug %>" style="display:contents"><select name="departamento" class="filter-chip" data-autosubmit aria-label="Departamento"><option value="">Todo Uruguay</option><% DEPARTAMENTOS.forEach(d => { %><option<%= query.departamento === d ? ' selected' : '' %>><%= d %></option><% }) %></select></form>
+</nav>
+
+<% if (r.patrocinados.length) { %><div class="sponsored-block results"><% r.patrocinados.forEach(t => { %><%- include('../partials/tarjeta', { t }) %><% }) %></div><% } %>
+<p class="muted small"><%= r.total %> <%= r.total === 1 ? 'servicio' : 'servicios' %> de <%= categoria.nombre.toLowerCase() %></p>
+<% if (r.items.length) { %>
+<div class="results results--grid"><% r.items.forEach(t => { %><%- include('../partials/tarjeta', { t }) %><% }) %></div>
+<%- include('../partials/paginacion', { p: { pagina: r.pagina, paginas: r.paginas } }) %>
+<% } else { %>
+<%- include('../partials/vacio', { t: 'Todavía no hay servicios con esos filtros', texto: 'Probá en otro departamento o modalidad.', accion: 'Ver todo', href: '/' + categoria.slug }) %>
+<% } %>
+
+<section class="section prose"><h2>Sobre <%= categoria.nombre.toLowerCase() %></h2><%- markdown(categoria.descripcionLarga) %></section>
+<% if (articulos.length) { %><section class="section"><h2>Para leer</h2><% articulos.forEach(x => { %><a class="post-card" href="/blog/<%= x.slug %>"><h2><%= x.titulo %></h2><p class="muted" style="margin:0"><%= x.resumen %></p></a><% }) %></section><% } %>
+<%- include('../partials/pie') %>

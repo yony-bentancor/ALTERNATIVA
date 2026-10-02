@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Comisiones', sub: 'Precedencia: promoción vigente → especialista → categoría → general (' + cfg.comision.tasaGeneral + '%).', acciones: '<a class="btn btn--ghost btn--sm" href="/admin/configuracion?seccion=comision">Comisión general</a>' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel"><h2>Reglas</h2>
+      <% if (!reglas.length) { %><p class="muted">Sin reglas: se usa la comisión general.</p><% } %>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Regla</th><th>Alcance</th><th class="num">Tasa</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead><tbody>
+      <% reglas.forEach(rg => { %><tr>
+        <td><b><%= rg.nombre %></b></td>
+        <td class="small"><%= { promocion: 'Promoción', especialista: 'Especialista', categoria: 'Categoría' }[rg.alcance] %><% if (rg.especialistaId || (rg.especialistas || [])[0]) { %>: <%= espMap.get(rg.especialistaId || rg.especialistas[0])?.nombre %><% } %><% if (rg.categoriaId || (rg.categorias || [])[0]) { %>: <%= (categorias.find(c => c.id === (rg.categoriaId || rg.categorias[0])) || {}).nombre %><% } %></td>
+        <td class="num"><%= String(rg.tasa).replace('.', ',') %>%</td>
+        <td class="small"><%= rg.desde ? fCorta(rg.desde) : 'Siempre' %><%= rg.hasta ? ' → ' + fCorta(new Date(new Date(rg.hasta) - 1)) : '' %></td>
+        <td><%- include('../partials/pill', { texto: rg.activa !== false ? 'Activa' : 'Inactiva', tono: rg.activa !== false ? 'ok' : '' }) %></td>
+        <td><form method="post" action="/admin/comisiones/reglas/<%= rg.id %>"><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit"><%= rg.activa !== false ? 'Desactivar' : 'Activar' %></button></form></td>
+      </tr><% }) %></tbody></table></div>
+    </section>
+    <% if (conTasaPropia.length) { %><section class="panel"><h2>Especialistas con comisión propia</h2><ul class="list"><% conTasaPropia.forEach(e => { %><li class="row row--between"><a href="/admin/especialistas/<%= e.id %>"><%= e.nombre %></a><b><%= e.comision %>%</b></li><% }) %></ul></section><% } %>
+    <section class="panel"><h2>Comisión generada (90 días)</h2>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Especialista</th><th class="num">Pagos</th><th class="num">Volumen</th><th class="num">Comisión</th><th class="num">Efectiva</th></tr></thead><tbody>
+      <% ranking.forEach(t => { %><tr><td><a href="/admin/especialistas/<%= t.id %>"><%= espMap.get(t.id)?.nombre || t.id %></a></td><td class="num"><%= t.cantidad %></td><td class="num"><%= pesos(t.bruto) %></td><td class="num"><%= pesos(t.comision) %></td><td class="num"><%= fPct(t.bruto ? Math.round(t.comision / t.bruto * 1000) / 10 : 0) %></td></tr><% }) %>
+      </tbody></table></div>
+    </section>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/admin/comisiones/reglas"><%- include('../partials/csrf') %>
+      <h2>Nueva regla</h2>
+      <div class="field"><label for="r-n">Nombre</label><input id="r-n" name="nombre" required maxlength="100" placeholder="Acupuntura 8%"></div>
+      <div class="field"><label for="r-a">Alcance</label><select id="r-a" name="alcance"><option value="categoria">Categoría</option><option value="especialista">Especialista</option><option value="promocion">Promoción temporal</option></select></div>
+      <div class="field"><label for="r-t">Tasa (%)</label><input id="r-t" name="tasa" type="number" step="0.1" min="0" max="50" required></div>
+      <div class="field"><label for="r-c">Categoría</label><select id="r-c" name="categoriaId"><option value="">—</option><% categorias.forEach(c => { %><option value="<%= c.id %>"><%= c.nombre %></option><% }) %></select></div>
+      <div class="field"><label for="r-e">Especialista</label><select id="r-e" name="especialistaId"><option value="">—</option><% especialistas.forEach(e => { %><option value="<%= e.id %>"><%= e.nombre %></option><% }) %></select></div>
+      <div class="grid-2"><div class="field"><label for="r-d">Desde</label><input id="r-d" name="desde" type="date"></div><div class="field"><label for="r-h">Hasta</label><input id="r-h" name="hasta" type="date"></div></div>
+      <p class="small muted">Aplica solo a reservas nuevas: cada reserva guarda la comisión con la que se hizo.</p>
+      <button class="btn btn--primary btn--sm" type="submit">Crear regla</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

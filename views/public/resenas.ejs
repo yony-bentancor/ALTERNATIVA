@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reseñas', sub: s.titulo + ' · ' + e.nombre, volver: '/servicios/' + e.slug + '/' + s.slug }) %>
+<nav class="filters" aria-label="Filtrar por estrellas">
+  <a class="filter-chip<%= !estrellas ? ' is-on' : '' %>" href="?">Todas (<%= s.rating.cant %>)</a>
+  <% [5,4,3,2,1].forEach(n => { %><a class="filter-chip<%= estrellas === n ? ' is-on' : '' %>" href="?estrellas=<%= n %>"><%= n %>★ (<%= (s.rating.distribucion || [])[n-1] || 0 %>)</a><% }) %>
+</nav>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay reseñas con ese filtro', ic: 'star' }) %><% } %>
+<% p.items.forEach(rv => { %>
+<article class="review">
+  <div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div>
+  <div class="review__meta"><%= fCorta(rv.creado) %> · <span class="review__verified"><%- icono('checkCircle', { tam: 13 }) %>Sesión realizada el <%= fCorta(rv.fechaServicio) %></span><% if (rv.editada) { %> · editada<% } %></div>
+  <% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %>
+  <% if (rv.respuesta) { %><div class="review__reply"><b>Respuesta de <%= e.nombre.split(' ')[0] %>:</b> <%= rv.respuesta.texto %></div><% } %>
+  <% if (usuario && usuario.id !== rv.usuarioId) { %>
+  <details class="small" style="margin-top:6px"><summary class="muted" style="cursor:pointer">Reportar</summary>
+    <form method="post" action="/reportar" class="row" style="margin-top:8px"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="resena"><input type="hidden" name="objetivoId" value="<%= rv.id %>">
+      <select name="motivo" required style="max-width:260px"><option value="">Motivo…</option><% Object.entries(motivos).forEach(([k, v]) => { %><option value="<%= k %>"><%= v %></option><% }) %></select>
+      <button class="btn btn--ghost btn--sm" type="submit">Enviar</button></form>
+  </details>
+  <% } %>
+</article>
+<% }) %>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Mis reseñas' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'resenas' }) %>
+<% if (!lista.length) { %><%- include('../partials/vacio', { t: 'Todavía no escribiste reseñas', texto: 'Después de cada sesión te invitamos a valorarla.', ic: 'star' }) %><% } %>
+<% lista.forEach(rv => { const e = esp.get(rv.especialistaId); const s = serv.get(rv.servicioId); const editable = Date.now() - new Date(rv.creado) < dias * 86400000; %>
+<article class="review">
+  <div class="review__head"><a href="/servicios/<%= e.slug %>/<%= s?.slug %>"><b><%= s?.titulo %></b></a><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div>
+  <div class="review__meta"><%= e.nombre %> · <%= fCorta(rv.creado) %><% if (rv.estado !== 'publicada') { %> · <span class="pill"><%= rv.estado === 'oculta' ? 'Oculta por moderación' : 'En revisión' %></span><% } %></div>
+  <% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %>
+  <% if (rv.respuesta) { %><div class="review__reply"><b>Respuesta:</b> <%= rv.respuesta.texto %></div><% } %>
+  <% if (editable) { %><a class="small" href="/mi/resenas/<%= rv.id %>/editar">Editar</a><% } %>
+</article>
+<% }) %>
+<%- include('../partials/pie') %>

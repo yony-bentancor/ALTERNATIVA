@@ -1,0 +1,32 @@
+<%- include('../partials/head') %>
+<% const est = (e.verificacion && e.verificacion.estado) || 'ninguna'; %>
+<%- include('../partials/encabezado', { t: 'Verificación de identidad', acciones: '<a class="btn btn--ghost btn--sm" href="/panel/certificaciones">Certificaciones</a>' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <% if (est === 'verificada') { %>
+      <section class="panel panel--blue"><h2><%- icono('shield', { tam: 20 }) %> Identidad verificada</h2><p>Tu ficha muestra el sello <b>Identidad verificada</b><%= e.verificacion.fecha ? ' desde el ' + fFecha(e.verificacion.fecha) : '' %>.</p></section>
+    <% } else if (est === 'pendiente') { %>
+      <section class="panel panel--warn"><h2><%- icono('clock', { tam: 20 }) %> En revisión</h2><p>Recibimos tu documentación. La revisamos en menos de 48 h hábiles y te avisamos.</p></section>
+    <% } else { %>
+      <% if (est === 'rechazada') { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span>No pudimos verificar tu identidad<%= e.verificacion.nota ? ': ' + e.verificacion.nota : '' %>. Podés volver a enviarla.</span></div><% } %>
+      <form class="panel stack" method="post" action="/panel/verificacion" enctype="multipart/form-data">
+        <%- include('../partials/csrf') %>
+        <h2>Enviá tu documento</h2>
+        <p class="muted">Foto de la cédula de ambos lados (o PDF). Se guarda de forma privada: solo la ve el equipo de Alternativa y nunca se publica.</p>
+        <div class="field"><label for="v-doc">Cédula (frente y dorso)</label><input id="v-doc" type="file" name="documentos" accept="image/*,application/pdf" multiple required><p class="field__hint">Hasta 3 archivos, JPG, PNG, WEBP o PDF.</p></div>
+        <div class="field"><label for="v-n">Número de documento</label><input id="v-n" name="documento" inputmode="numeric" placeholder="1.234.567-8"><p class="field__hint">Guardamos solo los últimos 4 dígitos para cotejar.</p></div>
+        <div class="field"><label for="v-no">Notas (opcional)</label><textarea id="v-no" name="notas" rows="2"></textarea></div>
+        <button class="btn btn--primary" type="submit">Enviar a verificación</button>
+      </form>
+    <% } %>
+    <% if (solicitudes.length) { %><section class="panel"><h2>Historial</h2><ul class="list"><% solicitudes.forEach(v => { %><li><div class="row row--between"><span><%= fFecha(v.creado) %> · <%= v.documentos.length %> archivo(s)<% if (v.documentoUltimos4) { %> · doc. ****<%= v.documentoUltimos4 %><% } %></span><span class="pill<%= v.estado === 'aprobada' ? ' pill--ok' : v.estado === 'rechazada' ? ' pill--danger' : ' pill--warn' %>"><%= v.estado %></span></div>
+      <div class="row small"><% v.documentos.forEach(id => { const d = docs.get(id); if (d) { %><a href="<%= d.url %>" target="_blank" rel="noopener"><%- icono('file', { tam: 14 }) %> Ver documento</a><% } }) %></div>
+      <% if (v.revision && v.revision.nota) { %><p class="small muted"><%= v.revision.nota %></p><% } %></li><% }) %></ul></section><% } %>
+  </div>
+  <aside><div class="panel stack small">
+    <h3>¿Para qué sirve?</h3>
+    <p>El sello <b>Identidad verificada</b> le confirma a tus clientes que sos quien decís ser. Las fichas verificadas generan más confianza y reservas.</p>
+    <p>Las certificaciones se muestran como <b>declaradas</b> hasta que revisemos el documento; recién ahí pasan a <b>verificadas</b>.</p>
+  </div></aside>
+</div>
+<%- include('../partials/pie') %>

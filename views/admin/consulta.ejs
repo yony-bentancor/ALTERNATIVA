@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: '#' + t.numero + ' · ' + t.asunto, sub: (u ? u.nombre + ' · ' + u.email : (t.nombre || '') + ' ' + (t.email || '')) + ' · ' + t.tema, volver: '/admin/soporte' }) %>
+<div class="layout-aside">
+  <div class="stack">
+    <div class="thread panel" style="max-height:none">
+      <% t.mensajes.forEach(m => { const adm = m.rol === 'admin'; const a = autores.get(m.autorId); %>
+      <div class="bubble <%= adm ? 'bubble--me' : 'bubble--them' %>"><b><%= m.rol === 'sistema' ? 'Sistema' : adm ? (a ? a.nombre : 'Alternativa') : (a ? a.nombre : (t.nombre || 'Visitante')) %>:</b> <%= m.texto %><span class="bubble__time"><%= fFechaHora(m.fecha) %></span></div>
+      <% }) %>
+    </div>
+    <form class="panel stack" method="post" action="/admin/soporte/<%= t.id %>"><%- include('../partials/csrf') %>
+      <div class="field"><label for="c-m">Respuesta</label><textarea id="c-m" name="mensaje" rows="4" placeholder="Se envía por aviso<%= u ? '' : ' y por email' %>."></textarea></div>
+      <div class="grid-2">
+        <div class="field"><label for="c-e">Estado</label><select id="c-e" name="estado"><option value="">Automático</option><% Object.entries({ abierta: 'Abierta', esperando_usuario: 'Esperando respuesta', resuelta: 'Resuelta', cerrada: 'Cerrada' }).forEach(([k, tx]) => { %><option value="<%= k %>"><%= tx %><%= t.estado === k ? ' (actual)' : '' %></option><% }) %></select></div>
+        <div class="field"><label for="c-p">Prioridad</label><select id="c-p" name="prioridad"><% ['alta', 'normal', 'baja'].forEach(k => { %><option<%= t.prioridad === k ? ' selected' : '' %>><%= k %></option><% }) %></select></div>
+      </div>
+      <button class="btn btn--primary" type="submit">Enviar / actualizar</button>
+    </form>
+  </div>
+  <aside class="stack">
+    <div class="panel small stack"><h3>Datos</h3>
+      <p>Estado: <b><%= t.estado %></b> · prioridad <b><%= t.prioridad %></b></p>
+      <p>Creada <%= fFechaHora(t.creado) %></p>
+      <% if (u) { %><a href="/admin/usuarios/<%= u.id %>">Ver cuenta de <%= u.nombre %></a><% if (u.telefono) { %><a class="btn btn--wa btn--sm" href="<%= enlaceWhatsapp(u.telefono, 'Hola ' + u.nombre.split(' ')[0] + ', te escribimos por tu consulta #' + t.numero) %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 14 }) %> WhatsApp</a><% } %><% } %>
+      <% if (ficha) { %><a href="/admin/especialistas/<%= ficha.id %>">Ficha: <%= ficha.nombre %></a><% } %>
+    </div>
+    <% if (r) { %><div class="panel small stack"><h3>Reserva</h3><a href="/admin/reservas/<%= r.id %>"><b><%= r.codigo %></b></a><span><%= r.foto.servicio %> · <%= fFechaHora(r.inicio) %></span><%- include('../partials/estado', { estado: r.estado }) %></div><% } %>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

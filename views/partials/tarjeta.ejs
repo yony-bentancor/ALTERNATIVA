@@ -1,0 +1,26 @@
+<%# Tarjeta de resultado (servicio + especialista). Recibe: t, favoritos %>
+<% const s = t.servicio, e = t.especialista, href = `/servicios/${e.slug}/${s.slug}${t.destacadoId ? '?ad=' + t.destacadoId : ''}`;
+   const lugar = (s.modalidades || []).length === 1 && s.modalidades[0] === 'online' ? 'Online' : [e.ubicacion?.barrio, e.ubicacion?.ciudad].filter(Boolean).join(', ');
+   const fav = (typeof favoritos !== 'undefined' && favoritos) ? favoritos.has(s.id) : false; %>
+<article class="result<%= t.patrocinado ? ' result--sponsored' : '' %>">
+  <a class="result__link" href="<%= href %>" aria-label="<%= s.titulo %> con <%= e.nombre %>"></a>
+  <div class="result__thumb">
+    <img src="<%= (s.fotos && s.fotos[0]) || e.portada || t.categoria.imagen %>" alt="" loading="lazy" decoding="async">
+    <% if (e.avatar) { %><img class="avatar avatar--sm" src="<%= e.avatar %>" alt="" loading="lazy" style="width:34px;height:34px;position:absolute"><% } %>
+  </div>
+  <div class="result__body">
+    <div class="result__top"><% if (t.patrocinado) { %><span class="badge badge--sponsored">Patrocinado</span><% } else if (t.nuevo) { %><span class="badge badge--new"><%- icono('sparkle', { tam: 14 }) %>Nuevo en Alternativa</span><% } %><% if (t.verificado) { %><span class="result__verified" title="Identidad verificada"><%- icono('shield', { tam: 15, etiqueta: 'Identidad verificada' }) %></span><% } %></div>
+    <h3 class="result__title"><%= s.titulo %></h3>
+    <p class="result__who"><%= e.nombre %><% if (lugar) { %> <span class="muted">· <%= lugar %></span><% } %><% if (t.distanciaKm !== null && t.distanciaKm !== undefined) { %> <span class="muted">· <%= String(t.distanciaKm).replace('.', ',') %> km</span><% } %></p>
+    <div class="result__meta"><%- include('rating', { r: s.rating }) %></div>
+    <div class="result__foot">
+      <span class="price"><%= pesos(t.precio) %> <span class="muted">· <%= duracion(s.duracion) %></span></span>
+      <% if (t.proximo) { %><span class="next-slot"><%- icono('clock', { tam: 14 }) %>Próximo turno: <%= fDiaCercano(t.proximo.fecha) %> <%= t.proximo.hora %></span><% } %>
+    </div>
+  </div>
+  <% if (usuario) { %>
+  <button type="button" class="fav<%= fav ? ' is-on' : '' %>" data-fav="servicio" data-id="<%= s.id %>" aria-pressed="<%= fav ? 'true' : 'false' %>" aria-label="<%= fav ? 'Quitar de favoritos' : 'Guardar en favoritos' %>"><%- icono('heart', { tam: 20 }) %></button>
+  <% } else { %>
+  <a class="fav" href="/ingresar" aria-label="Guardar en favoritos"><%- icono('heart', { tam: 20 }) %></a>
+  <% } %>
+</article>

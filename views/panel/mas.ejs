@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Más opciones' }) %>
+<div class="mobile-menu">
+  <% secciones.forEach(g => { %>
+  <section class="panel"><p class="sidenav__title" style="margin-left:0"><%= g.titulo %></p>
+    <ul class="list"><% g.items.forEach(([k, href, txt, ic, n]) => { %><li><a class="list-row" href="<%= href %>"><%- icono(ic) %><span class="list-row__main"><%= txt %></span><% if (n) { %><span class="pill pill--brand"><%= n %></span><% } %><%- icono('chevronRight', { tam: 16 }) %></a></li><% }) %></ul>
+  </section>
+  <% }) %>
+  <a class="btn btn--ghost" href="/">Ver el sitio</a>
+</div>
+<%- include('../partials/pie') %>

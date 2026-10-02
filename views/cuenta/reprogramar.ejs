@@ -1,0 +1,12 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Reprogramar', sub: r.foto.servicio + ' · ahora: ' + fFechaHora(r.inicio), volver }) %>
+<form method="post" action="<%= accion %>" data-booking data-mode="reschedule" data-service="<%= r.servicioId %>" data-today="<%= hoy %>" data-exclude="<%= r.id %>">
+  <%- include('../partials/csrf') %>
+  <input type="hidden" name="fecha"><input type="hidden" name="hora">
+  <div class="grid-2" style="align-items:start">
+    <div class="panel cal" data-cal><p class="slots-empty">Cargando agenda…</p></div>
+    <div><h2 class="small" data-day-title>Horarios</h2><div data-slots></div></div>
+  </div>
+  <div class="sticky-cta" style="margin-top:16px"><span class="small muted">Sin costo. El pago se mantiene.</span><button class="btn btn--primary" type="submit" disabled data-reschedule-submit>Elegí un horario</button></div>
+</form>
+<%- include('../partials/pie') %>

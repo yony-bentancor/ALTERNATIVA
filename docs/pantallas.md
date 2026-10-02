@@ -1,8 +1,12 @@
 # Mapa de pantallas
 
-Las 129 pantallas funcionales del documento maestro y dónde están. Algunas son vistas, pestañas o estados de una misma URL (como preveía el documento).
+Las 129 pantallas funcionales del documento maestro, su URL y con qué usuario de prueba se ven (contraseña de todos: `alternativa2026`). Algunas son vistas, pestañas o estados de una misma URL.
+
+Cada sección indica su controlador (`controllers/`) y su carpeta de vistas (`views/`), con la misma organización que Relámpago.
 
 ## Públicas (1–25)
+
+Sin sesión. Controladores: `publicoController.js`, `authController.js` · Vistas: `views/public/`, `views/auth/`
 
 | # | Pantalla | URL |
 |---|---|---|
@@ -27,7 +31,7 @@ Las 129 pantallas funcionales del documento maestro y dónde están. Algunas son
 | 19 | Política de cancelaciones | `/cancelaciones` |
 | 20 | Registro | `/registro?tipo=usuario` / `?tipo=especialista` |
 | 21 | Selección de tipo de cuenta | `/registro` |
-| 22 | Login | `/login` |
+| 22 | Login | `/ingresar` (con botones "Entrar" para cada usuario de prueba; `/login` redirige) |
 | 23 | Recuperar contraseña | `/recuperar` |
 | 24 | Restablecer contraseña | `/restablecer/:token` |
 | 25 | Verificación de cuenta | `/verificar/:token` (+ reenvío desde Mi cuenta) |
@@ -36,6 +40,8 @@ Extra: `/ofrecer` (landing para especialistas), `/reclamar/:token` (reclamo de p
 
 ## Usuario (26–55)
 
+Usuario de prueba: **usuario@alternativa.uy** (Sofía, con todos los casos) o **nuevo.usuario@alternativa.uy** (cuenta vacía). Controladores: `cuentaController.js`, `reservaController.js`, `apiController.js` · Vistas: `views/cuenta/`, `views/reservas/`
+
 | # | Pantalla | URL |
 |---|---|---|
 | 26 | Inicio usuario | `/mi` |
@@ -43,7 +49,7 @@ Extra: `/ofrecer` (landing para especialistas), `/reclamar/:token` (reclamo de p
 | 32 | Selección de fecha | `/reservar/:servicio` (calendario) |
 | 33 | Selección de hora | `/reservar/:servicio` (horarios del día) |
 | 34 | Confirmación de reserva | `/reservar/:servicio/confirmar?fecha&hora&modalidad` |
-| 35 | Pago | `/pago/:reserva` → Mercado Pago |
+| 35 | Pago | `/pago/:reserva` → Mercado Pago, o la pantalla de pago simulado `/pago/simulado/:pago` (aprobar / rechazar) |
 | 36 | Resultado del pago | `/pago/retorno` |
 | 37 | Reserva confirmada | `/mi/reservas/:id?nueva=1` |
 | 38 | Mis reservas | `/mi/reservas` |
@@ -68,6 +74,8 @@ Extra: `/ofrecer` (landing para especialistas), `/reclamar/:token` (reclamo de p
 Extra: volver a reservar `/mi/reservas/:id/volver`, reportar problema en el detalle, mis reseñas `/mi/resenas`.
 
 ## Especialista (56–94)
+
+Usuarios de prueba: **especialista@alternativa.uy** (Lucía: agenda llena, cobros, reseñas, estadísticas), **reiki@alternativa.uy** (Martín: confirma reservas a mano, verificación pendiente) y **nuevo.especialista@alternativa.uy** (Diego: ficha en borrador). Controladores: `panelController.js`, `fichaController.js`, `agendaController.js`, `negocioController.js` · Vistas: `views/panel/`
 
 | # | Pantalla | URL |
 |---|---|---|
@@ -115,9 +123,11 @@ Extra: alta `/panel/comenzar`, menú móvil `/panel/mas`.
 
 ## Administración (95–129)
 
+Usuario de prueba: **admin@alternativa.uy**. Controladores: `adminController.js` (resumen, estadísticas, configuración, avisos, auditoría), `adminMarketplaceController.js` (especialistas, verificaciones, usuarios, servicios, categorías, reservas), `adminDineroController.js` (pagos, comisiones, reembolsos, liquidaciones), `adminConfianzaController.js` (reseñas, moderación, denuncias, soporte), `adminCrecimientoController.js` (destacados, promociones, contenido) · Vistas: `views/admin/`
+
 | # | Pantalla | URL |
 |---|---|---|
-| 95 | Login administración | `/admin/login` → `/login` |
+| 95 | Login administración | `/admin/login` → `/ingresar?volver=/admin` |
 | 96 | Dashboard general | `/admin` |
 | 97 | Especialistas | `/admin/especialistas` |
 | 98 | Crear especialista | `/admin/especialistas/nuevo` |
@@ -139,16 +149,35 @@ Extra: alta `/panel/comenzar`, menú móvil `/panel/mas`.
 | 114 | Reseñas | `/admin/resenas` |
 | 115 | Moderación | `/admin/moderacion` |
 | 116 | Reportes / denuncias | `/admin/denuncias` |
-| 117 | Multimedia reportada | `/admin/moderacion?tab=reportada` |
+| 117 | Multimedia reportada | `/admin/moderacion?tab=reportado` |
 | 118 | Destacados / publicidad | `/admin/destacados` |
 | 119 | Promociones | `/admin/promociones` |
 | 120 | Estadísticas | `/admin/estadisticas` |
-| 121 | Configuración de comisiones | `/admin/comisiones` + `/admin/configuracion?seccion=commission` |
+| 121 | Configuración de comisiones | `/admin/comisiones` + `/admin/configuracion?seccion=comision` |
 | 122 | Configuración general | `/admin/configuracion` |
 | 123 | Notificaciones | `/admin/notificaciones` |
 | 124 | Gestión de contenido | `/admin/contenido` |
-| 125 | Blog | `/admin/contenido?tipo=post` |
+| 125 | Blog | `/admin/contenido?tipo=articulo` |
 | 126 | FAQ | `/admin/contenido?tipo=faq` |
-| 127 | Términos | `/admin/contenido?tipo=page` → `terminos` |
+| 127 | Términos | `/admin/contenido?tipo=pagina` → Términos y condiciones |
 | 128 | Logs / auditoría | `/admin/auditoria` |
 | 129 | Soporte / incidencias | `/admin/soporte`, `/admin/soporte/:id` |
+
+Extra: invitar a reclamar perfiles (`/admin/especialistas/:id` → "Invitar a reclamar"; en modo demo se muestra el enlace), documentos privados con registro de acceso (`/admin/documentos/:id`), conciliación de pagos (`/admin/pagos` → "Conciliar pendientes").
+
+## Casos de prueba listos en los datos de ejemplo
+
+| Qué probar | Dónde |
+|---|---|
+| Reservar y pagar (pago simulado) con el código `BIENVENIDA` (15%) | usuario@ → cualquier servicio → Reservar |
+| Reserva pendiente de pago, reprogramada, cancelada con reembolso, realizada para valorar | usuario@ → Mis reservas |
+| Mapa de Google, WhatsApp y dirección exacta de una reserva presencial | usuario@ → próxima reserva con Lucía |
+| Confirmar una reserva pagada | reiki@ → Reservas → Por confirmar |
+| Marcar realizada / "el cliente no vino" | especialista@ → Inicio → "Hoy" (dos sesiones recién terminadas) |
+| Ficha incompleta y vinculación de cobro de prueba | nuevo.especialista@ → Panel |
+| Reclamar un perfil cargado por administración | `/reclamar/demo-reclamar-shanti` con cualquier cuenta |
+| Publicar ficha en revisión, aprobar cambio de nombre, verificar identidad y certificación | admin@ → Pendientes / Verificaciones |
+| Reintentar un reembolso fallido, pago en disputa, incidencia abierta | admin@ → Reembolsos / Pagos / Reservas |
+| Generar y pagar liquidaciones | admin@ → Liquidaciones |
+| Moderar foto denunciada y foto pendiente, reseña con pedido de revisión, denuncias | admin@ → Moderación / Reseñas / Denuncias |
+| Aprobar categoría propuesta (Biodescodificación) y solicitud de destacado | admin@ → Categorías / Destacados |

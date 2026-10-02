@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Visualizaciones', sub: 'Cuántas personas ven tu ficha y tus servicios' }) %>
+<%- include('../partials/pestanias', { items: [['estadisticas', '/panel/estadisticas?periodo=' + periodo, 'Resumen'], ['visualizaciones', '/panel/visualizaciones?periodo=' + periodo, 'Visualizaciones'], ['rendimiento', '/panel/rendimiento?periodo=' + periodo, 'Por servicio']], actual: vista }) %>
+<%- include('../partials/periodo', { periodo, base: '/panel/visualizaciones' }) %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Apariciones en búsquedas', valor: stats.impresiones, sub: stats.impresionesPatrocinadas + ' como destacado' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Visitas a la ficha', valor: stats.visitasPerfil }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Visitas a servicios', valor: stats.visitasServicio }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Consultas de agenda', valor: stats.consultasAgenda, sub: stats.favoritos + ' favoritos · ' + stats.mensajes + ' mensajes' }) %>
+</div>
+<section class="panel" style="margin-top:16px"><h2>Visitas por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'vistas', etiqueta: 'visitas' }) %></section>
+<section class="panel" style="margin-top:16px"><h2>Embudo</h2>
+  <%- include('../partials/barras', { filas: [
+    { texto: 'Aparecés en búsquedas', valor: stats.impresiones },
+    { texto: 'Te visitan', valor: stats.vistas },
+    { texto: 'Miran tu agenda', valor: stats.consultasAgenda },
+    { texto: 'Reservan', valor: stats.reservas } ] }) %>
+  <p class="small muted">Las visitas tuyas y de administración no se cuentan. Cada persona suma una vez por sesión.</p>
+</section>
+<%- include('../partials/pie') %>

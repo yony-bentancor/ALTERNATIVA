@@ -1,0 +1,8 @@
+<%# Paginación. Recibe: p ({pagina, paginas}) %>
+<% if (p && p.paginas > 1) { %>
+<nav class="pager" aria-label="Paginación">
+  <% if (p.pagina > 1) { %><a class="btn btn--ghost btn--sm" href="<%= qs({ page: p.pagina - 1 }) %>"><%- icono('chevronLeft', { tam: 16 }) %> Anterior</a><% } else { %><span></span><% } %>
+  <span class="muted small">Página <%= p.pagina %> de <%= p.paginas %></span>
+  <% if (p.pagina < p.paginas) { %><a class="btn btn--ghost btn--sm" href="<%= qs({ page: p.pagina + 1 }) %>">Siguiente <%- icono('chevronRight', { tam: 16 }) %></a><% } else { %><span></span><% } %>
+</nav>
+<% } %>

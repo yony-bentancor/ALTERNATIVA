@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Avisos', sub: 'Tus avisos de administración, envíos masivos y bandeja de emails de prueba' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel"><h2>Tus avisos</h2>
+      <% if (!propias.length) { %><p class="muted">Sin avisos.</p><% } %>
+      <ul class="list"><% propias.forEach(n => { %><li><a href="<%= n.enlace || '/admin' %>"><b><%= n.titulo %></b></a><br><span class="small muted"><%= n.texto %> · <%= fRelativa(n.creado) %></span></li><% }) %></ul>
+    </section>
+    <section class="panel"><h2>Emails enviados (modo <%= proveedorEmail %>)</h2>
+      <% if (proveedorEmail !== 'consola') { %><p class="small muted">Los emails salen por Resend; acá solo se listan en modo consola.</p><% } %>
+      <% if (!bandeja.length) { %><p class="muted">Todavía no se envió ningún email desde que arrancó el servidor. Probá recuperar una contraseña o invitar a reclamar un perfil.</p><% } %>
+      <% bandeja.forEach(m => { %><details class="panel" style="background:var(--gray);margin-bottom:8px"><summary><b><%= m.asunto %></b> <span class="small muted">→ <%= m.para %> · <%= fRelativa(m.fecha) %></span></summary><pre class="small" style="white-space:pre-wrap;margin:8px 0 0"><%= m.texto %></pre></details><% }) %>
+    </section>
+    <% if (enviados.length) { %><section class="panel"><h2>Últimos envíos masivos</h2><ul class="list small"><% enviados.forEach(a => { %><li><%= a.resumen %> · <%= a.actor %> · <%= fFechaHora(a.creado) %></li><% }) %></ul></section><% } %>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/admin/notificaciones/enviar" data-confirm="¿Enviar el aviso?"><%- include('../partials/csrf') %>
+      <h2>Enviar aviso</h2>
+      <div class="field"><label>Para</label><select name="publico"><option value="todos">Todas las cuentas</option><option value="usuarios">Solo usuarios</option><option value="especialistas">Solo especialistas</option><option value="email">Una cuenta (email)</option></select></div>
+      <div class="field"><label>Email (si es una cuenta)</label><input type="email" name="email" placeholder="usuario@alternativa.uy"></div>
+      <div class="field"><label>Título</label><input name="titulo" required maxlength="120"></div>
+      <div class="field"><label>Texto</label><textarea name="texto" rows="3" required maxlength="1000"></textarea></div>
+      <div class="field"><label>Enlace interno</label><input name="enlace" placeholder="/blog"></div>
+      <label class="check"><input type="checkbox" name="porEmail" value="1"> También por email (a quien aceptó novedades)</label>
+      <button class="btn btn--primary btn--sm" type="submit"><%- icono('send', { tam: 16 }) %> Enviar</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

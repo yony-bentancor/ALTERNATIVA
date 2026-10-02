@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <h1>Crear cuenta</h1>
+  <p class="muted">¿Cómo vas a usar Alternativa?</p>
+  <div class="choice">
+    <a href="/registro?tipo=usuario"><%- icono('search', { tam: 28 }) %><div><strong>Busco un servicio</strong><span>Reservá sesiones de bienestar, guardá favoritos y valorá tus experiencias.</span></div></a>
+    <a href="/registro?tipo=especialista"><%- icono('sparkle', { tam: 28 }) %><div><strong>Ofrezco servicios</strong><span>Creá tu ficha, publicá tus servicios, organizá tu agenda y cobrá en línea.</span></div></a>
+  </div>
+  <p class="auth__alt">¿Ya tenés cuenta? <a href="/ingresar">Ingresar</a></p>
+</div>
+<%- include('../partials/pie') %>

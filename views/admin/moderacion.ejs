@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Moderación', sub: cfg.moderacion.multimedia ? 'Las fotos y videos nuevos esperan aprobación.' : 'Las fotos y videos se publican al subirlos; acá aparecen los denunciados.', acciones: '<a class="btn btn--ghost btn--sm" href="/admin/configuracion?seccion=moderacion">Reglas de moderación</a>' }) %>
+<%- include('../partials/pestanias', { items: [['pendiente', '?tab=pendiente', 'Para aprobar', cuentas.pendiente], ['reportado', '?tab=reportado', 'Denunciados', cuentas.reportado], ['cambios', '?tab=cambios', 'Cambios de perfil', cuentas.cambios], ['servicios', '?tab=servicios', 'Servicios', cuentas.servicios]], actual: tab }) %>
+<% if (tab === 'pendiente' || tab === 'reportado') { %>
+  <% if (!media.length) { %><%- include('../partials/vacio', { t: 'Nada para revisar', ic: 'image' }) %><% } %>
+  <div class="media-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"><% media.forEach(m => { const e = espMap.get(m.especialistaId); %>
+    <figure class="media-item" style="margin:0">
+      <a href="<%= m.url %>" target="_blank"><% if (m.tipo === 'video') { %><video src="<%= m.url %>" muted preload="metadata"></video><% } else { %><img src="<%= m.url %>" alt="" loading="lazy"><% } %></a>
+      <figcaption style="padding:8px" class="stack">
+        <span class="small"><b><%= e ? e.nombre : '—' %></b> · <%= m.tipo %><%= m.denuncias ? ' · ' + m.denuncias + ' denuncia(s)' : '' %></span>
+        <% if (m.epigrafe) { %><span class="small muted"><%= m.epigrafe %></span><% } %>
+        <form method="post" action="/admin/moderacion/multimedia/<%= m.id %>" class="stack"><%- include('../partials/csrf') %>
+          <input name="motivo" placeholder="Motivo (si se rechaza)" aria-label="Motivo">
+          <div class="row"><button class="btn btn--primary btn--sm" name="accion" value="aprobar" type="submit">Aprobar</button><button class="btn btn--ghost btn--sm" name="accion" value="rechazar" type="submit">Rechazar</button><button class="btn btn--danger btn--sm" name="accion" value="eliminar" type="submit" aria-label="Eliminar"><%- icono('trash', { tam: 14 }) %></button></div>
+        </form>
+      </figcaption>
+    </figure><% }) %></div>
+<% } else if (tab === 'cambios') { %>
+  <% if (!cambios.length) { %><%- include('../partials/vacio', { t: 'Sin cambios pendientes', ic: 'check' }) %><% } %>
+  <div class="stack"><% cambios.forEach(e => { e.cambiosPendientes.forEach(c => { %>
+    <article class="panel row row--between">
+      <span><a href="/admin/especialistas/<%= e.id %>"><b><%= e.nombre %></b></a> · <%= nombresCampo[c.campo] || c.campo %><br><span class="small">Nuevo: <b><%= c.campo === 'categorias' ? [].concat(c.valor).map(id => (categorias.find(x => x.id === id) || {}).nombre).join(', ') : c.valor %></b> · actual: <%= c.campo === 'categorias' ? (e.categorias || []).map(id => (categorias.find(x => x.id === id) || {}).nombre).join(', ') : e[c.campo] %></span></span>
+      <span class="row"><% ['aprobar', 'rechazar'].forEach(dec => { %><form method="post" action="/admin/especialistas/<%= e.id %>/cambios"><%- include('../partials/csrf') %><input type="hidden" name="campo" value="<%= c.campo %>"><input type="hidden" name="decision" value="<%= dec %>"><button class="btn btn--sm <%= dec === 'aprobar' ? 'btn--primary' : 'btn--ghost' %>" type="submit"><%= dec === 'aprobar' ? 'Aprobar' : 'Rechazar' %></button></form><% }) %></span>
+    </article><% }) }) %></div>
+<% } else { %>
+  <% if (!servicios.length) { %><%- include('../partials/vacio', { t: 'No hay servicios en revisión', ic: 'layers' }) %><% } %>
+  <ul class="list panel"><% servicios.forEach(s => { %><li class="row row--between"><span><a href="/admin/servicios/<%= s.id %>"><b><%= s.titulo %></b></a> · <%= espMap.get(s.especialistaId)?.nombre %><br><span class="small muted"><%= s.motivoEstado || '' %></span></span><a class="btn btn--ghost btn--sm" href="/admin/servicios/<%= s.id %>">Revisar</a></li><% }) %></ul>
+<% } %>
+<%- include('../partials/pie') %>

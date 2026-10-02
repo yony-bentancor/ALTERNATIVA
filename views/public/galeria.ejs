@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Fotos y video', sub: e.nombre, volver: '/especialistas/' + e.slug }) %>
+<% if (e.video) { %><section class="section"><div class="video-frame"><video src="<%= e.video %>" controls preload="metadata" playsinline<%- e.poster ? ` poster="${e.poster}"` : '' %>></video></div></section><% } %>
+<% if (galeria.length) { %>
+<div class="gallery-full">
+  <% galeria.forEach(m => { %>
+  <figure><a href="<%= m.url %>" target="_blank" rel="noopener"><img src="<%= m.url %>" alt="<%= m.epigrafe || 'Foto de ' + e.nombre %>" loading="lazy"></a><% if (m.epigrafe) { %><figcaption><%= m.epigrafe %></figcaption><% } %>
+    <% if (usuario && usuario.especialistaId !== e.id) { %><form method="post" action="/reportar" class="inline-form" data-confirm="¿Reportar esta foto como inapropiada?"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="multimedia"><input type="hidden" name="objetivoId" value="<%= m.id %>"><input type="hidden" name="motivo" value="ofensivo"><button class="btn btn--text btn--sm" type="submit">Reportar</button></form><% } %>
+  </figure>
+  <% }) %>
+</div>
+<% } else { %><%- include('../partials/vacio', { t: 'Todavía no hay fotos', ic: 'image' }) %><% } %>
+<%- include('../partials/pie') %>

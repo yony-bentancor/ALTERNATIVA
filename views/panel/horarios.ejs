@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Horarios de atención', sub: 'Alternativa calcula los turnos libres a partir de estos horarios y tus reservas.', volver: '/panel/agenda' }) %>
+<form method="post" action="/panel/agenda/horarios" class="stack-lg" style="max-width:760px">
+  <%- include('../partials/csrf') %>
+  <section class="panel">
+    <% [1,2,3,4,5,6,0].forEach(dia => { const d = (agenda.semanal || []).find(w => w.dia === dia); const rangos = d ? d.rangos : []; %>
+    <div class="sched-day">
+      <strong style="text-transform:capitalize"><%= DIAS[dia] %></strong>
+      <div>
+        <div class="sched-ranges" data-ranges="<%= dia %>">
+          <% rangos.forEach((r, i) => { %><div class="sched-range"><input type="time" name="semanal[<%= dia %>][<%= i %>][inicio]" value="<%= r.inicio %>" aria-label="Desde"><span>a</span><input type="time" name="semanal[<%= dia %>][<%= i %>][fin]" value="<%= r.fin %>" aria-label="Hasta"><button type="button" class="btn btn--text btn--sm" data-remove-range>Quitar</button></div><% }) %>
+        </div>
+        <button type="button" class="btn btn--text btn--sm" data-add-range="<%= dia %>">+ Agregar franja</button>
+        <% if (!rangos.length) { %><span class="small muted">No atendés</span><% } %>
+      </div>
+    </div>
+    <% }) %>
+  </section>
+  <section class="panel"><h2>Reglas de reserva</h2>
+    <div class="grid-2">
+      <div class="field"><label for="h-p">Turnos cada (minutos)</label><input id="h-p" name="paso" type="number" min="5" max="120" step="5" value="<%= agenda.paso %>"></div>
+      <div class="field"><label for="h-b">Pausa entre sesiones (minutos)</label><input id="h-b" name="buffer" type="number" min="0" max="120" step="5" value="<%= agenda.buffer %>"></div>
+      <div class="field"><label for="h-a">Aviso mínimo (horas)</label><input id="h-a" name="avisoHoras" type="number" min="0" max="168" step="0.5" value="<%= agenda.avisoMin / 60 %>"><p class="field__hint">Para que no te reserven a último momento.</p></div>
+      <div class="field"><label for="h-m">Reservas hasta (días adelante)</label><input id="h-m" name="anticipacionMax" type="number" min="1" max="365" value="<%= agenda.anticipacionMax %>"></div>
+      <div class="field"><label for="h-l">Máximo de reservas por día</label><input id="h-l" name="limiteDiario" type="number" min="0" max="50" value="<%= agenda.limiteDiario %>"><p class="field__hint">0 = sin límite.</p></div>
+    </div>
+  </section>
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">Guardar horarios</button><a class="btn btn--ghost" href="/panel/agenda/bloqueos">Vacaciones y bloqueos</a></div>
+</form>
+<%- include('../partials/pie') %>

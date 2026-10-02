@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Categorías', sub: 'Todas las terapias y disciplinas de bienestar disponibles en Alternativa.' }) %>
+<div class="cats cats--img">
+  <% categorias.forEach(c => { %>
+  <a class="cat" href="/<%= c.slug %>" style="--c:<%= c.color %>">
+    <div class="cat__img"><img src="<%= c.imagen %>" alt="" loading="lazy"></div>
+    <div class="cat__txt"><span class="cat__name"><%- icono(c.icono, { tam: 18, clase: 'cat__icon' }) %> <%= c.nombre %></span><span class="small muted"><%= c.descripcion %></span><span class="cat__count"><%= c.cantidad %> <%= c.cantidad === 1 ? 'servicio' : 'servicios' %></span></div>
+  </a>
+  <% }) %>
+</div>
+<%- include('../partials/pie') %>

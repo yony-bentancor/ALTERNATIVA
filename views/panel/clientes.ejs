@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Clientes', sub: filas.length + ' personas reservaron con vos' }) %>
+<form class="toolbar"><div class="field"><input type="search" name="q" value="<%= q %>" placeholder="Buscar por nombre" aria-label="Buscar"></div><button class="btn btn--ghost btn--sm" type="submit">Buscar</button></form>
+<% if (!filas.length) { %><%- include('../partials/vacio', { t: 'Todavía no tenés clientes', ic: 'users' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Cliente</th><th>Sesiones</th><th>Última</th><th>Próxima</th><th>Servicios</th><th class="num">Ingresos</th></tr></thead>
+  <tbody><% filas.forEach(c => { const u = usuarios.get(c.usuarioId); %><tr>
+    <td><div class="row" style="flex-wrap:nowrap"><% if (u && u.avatar) { %><img class="avatar avatar--sm" src="<%= u.avatar %>" alt=""><% } else { %><span class="avatar avatar--sm avatar--initial"><%= c.nombre[0] %></span><% } %><a href="/panel/clientes/<%= c.usuarioId %>"><%= c.nombre %></a><% if (c.total > 1) { %> <span class="pill pill--info">Recurrente</span><% } %></div></td>
+    <td><%= c.realizadas %>/<%= c.total %></td><td><%= c.ultima ? fCorta(c.ultima) : '—' %></td><td><%= c.proxima ? fCorta(c.proxima) : '—' %></td>
+    <td class="small"><%= [...c.servicios].join(', ') %></td><td class="num"><%= pesos(c.gastado) %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<% } %>
+<%- include('../partials/pie') %>

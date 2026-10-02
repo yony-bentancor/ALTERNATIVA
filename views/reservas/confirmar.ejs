@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<% const d = cot.d; %>
+<ol class="steps" aria-label="Pasos"><li class="is-done"></li><li class="is-done"></li><li></li></ol>
+<%- include('../partials/encabezado', { t: 'Confirmá tu reserva', volver: '/reservar/' + s.id + '?fecha=' + fecha + '&modalidad=' + modalidad }) %>
+<form method="post" action="/reservar/<%= s.id %>" class="layout-aside">
+  <%- include('../partials/csrf') %>
+  <input type="hidden" name="fecha" value="<%= fecha %>"><input type="hidden" name="hora" value="<%= hora %>"><input type="hidden" name="codigo" value="<%= codigo %>"><% if (volverDe) { %><input type="hidden" name="volverDe" value="<%= volverDe %>"><% } %>
+  <div class="stack-lg">
+    <section class="panel">
+      <div class="card__who"><% if (e.avatar) { %><img class="avatar avatar--lg" src="<%= e.avatar %>" alt=""><% } %><div><h2 style="margin:0"><%= s.titulo %></h2><span><%= e.nombre %></span></div></div>
+      <dl class="dl">
+        <div><dt>Fecha</dt><dd><b><%= fFechaTexto(fecha) %></b></dd></div>
+        <div><dt>Hora</dt><dd><b><%= hora %> h</b> (<%= duracion(s.duracion) %>)</dd></div>
+        <div><dt>Modalidad</dt><dd><%= MODALIDADES[modalidad].texto %> · <a href="/reservar/<%= s.id %>?fecha=<%= fecha %>">cambiar</a></dd></div>
+        <% if (modalidad === 'presencial') { %><div><dt>Lugar</dt><dd><%= e.ubicacion?.referencia || [e.ubicacion?.barrio, e.ubicacion?.ciudad].filter(Boolean).join(', ') %><br><span class="muted small">La dirección exacta y el mapa te llegan al confirmar.</span></dd></div><% } %>
+        <% if (modalidad === 'online') { %><div><dt>Lugar</dt><dd>Videollamada. Recibís el enlace en el detalle de la reserva.</dd></div><% } %>
+      </dl>
+    </section>
+    <input type="hidden" name="modalidad" value="<%= modalidad %>">
+    <% if (modalidad === 'domicilio') { %>
+    <div class="field"><label for="cf-dir">Dirección para la atención a domicilio</label><input id="cf-dir" name="direccion" required maxlength="300" value="<%= direccion %>" placeholder="Calle, número, apartamento y barrio"><p class="field__hint">Solo la ve <%= e.nombre.split(' ')[0] %>.</p></div>
+    <% } %>
+    <div class="field"><label for="cf-n">Notas para <%= e.nombre.split(' ')[0] %> <span class="muted">(opcional)</span></label><textarea id="cf-n" name="notas" rows="3" maxlength="1000" placeholder="Ej.: es mi primera vez, tengo una molestia en la espalda…"></textarea></div>
+    <section class="panel panel--soft"><h3>Política de cancelación</h3><ul class="checklist small"><% politica.slice(0, 3).concat(politica.slice(5)).forEach(p => { %><li><span><%- icono('info', { tam: 16 }) %><%= p %></span></li><% }) %></ul><a class="small" href="/cancelaciones" target="_blank">Ver política completa</a></section>
+  </div>
+  <aside>
+    <div class="panel stack">
+      <h3 style="margin:0">Resumen</h3>
+      <div class="summary">
+        <div class="summary__row"><span><%= s.titulo %></span><span><%= pesos(d.subtotal - (cot.recargo || 0)) %></span></div>
+        <% if (cot.recargo) { %><div class="summary__row"><span>Recargo a domicilio</span><span><%= pesos(cot.recargo) %></span></div><% } %>
+        <% if (d.descuento) { %><div class="summary__row" style="color:var(--ok)"><span><%= cot.promo.titulo %> (−<%= cot.promo.descuento %>%)</span><span>−<%= pesos(d.descuento) %></span></div><% } %>
+        <% if (cfg.comision.mostrarPrecio === 'desglose' && d.total !== d.netoEspecialista) { %><div class="summary__row"><span><%= cfg.comision.etiqueta %></span><span><%= pesos(d.total - d.subtotal + d.descuento) %></span></div><% } %>
+        <div class="summary__row summary__row--total"><span>Total</span><span><%= pesos(d.total) %></span></div>
+      </div>
+      <% if (cot.error) { %><p class="flash flash--error"><%= cot.error %></p><% } else { %>
+      <button class="btn btn--primary btn--block btn--lg" type="submit"><%= modelo === 'offline' ? 'Confirmar reserva' : 'Confirmar y pagar ' + pesos(d.total) %></button>
+      <p class="small muted" style="margin:0"><%- icono('shield', { tam: 14 }) %> <%= modelo === 'offline' ? 'Pagás directamente al especialista.' : (proveedorPagos === 'simulado' ? 'Modo demostración: el pago es simulado, sin dinero real.' : 'Vas a pagar en Mercado Pago. Alternativa no guarda datos de tu tarjeta.') %></p>
+      <% } %>
+    </div>
+    <details class="panel" style="margin-top:12px"><summary class="small" style="cursor:pointer">¿Tenés un código de descuento?</summary>
+      <div class="inputgroup" style="margin-top:10px"><input form="form-codigo" name="codigo" value="<%= codigo %>" placeholder="BIENVENIDA" aria-label="Código"><button form="form-codigo" class="btn btn--ghost" type="submit">Aplicar</button></div>
+    </details>
+  </aside>
+</form>
+<form id="form-codigo" method="get" action="/reservar/<%= s.id %>/confirmar"><input type="hidden" name="fecha" value="<%= fecha %>"><input type="hidden" name="hora" value="<%= hora %>"><input type="hidden" name="modalidad" value="<%= modalidad %>"></form>
+<%- include('../partials/pie') %>

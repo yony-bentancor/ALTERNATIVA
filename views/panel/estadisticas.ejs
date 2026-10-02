@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Estadísticas', sub: 'Del ' + fFechaTexto(stats.rango.desde) + ' al ' + fFechaTexto(stats.rango.hasta) }) %>
+<%- include('../partials/pestanias', { items: [['estadisticas', '/panel/estadisticas?periodo=' + periodo, 'Resumen'], ['visualizaciones', '/panel/visualizaciones?periodo=' + periodo, 'Visualizaciones'], ['rendimiento', '/panel/rendimiento?periodo=' + periodo, 'Por servicio']], actual: vista }) %>
+<%- include('../partials/periodo', { periodo, base: '/panel/estadisticas' }) %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas', valor: stats.reservas, sub: stats.cancelaciones + ' canceladas · ' + stats.ausencias + ' ausencias' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ingresos netos', valor: pesos(stats.ingresos), sub: 'lo que te queda' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Visitas', valor: stats.vistas, sub: 'conversión ' + fPct(stats.conversion) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Clientes', valor: stats.clientes, sub: stats.nuevos + ' nuevos · ' + fPct(stats.tasaRepeticion) + ' repiten' }) %>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Reservas por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'reservas', etiqueta: 'reservas', color: 'var(--lav)' }) %></section>
+  <section class="panel"><h2>Ingresos por día</h2><%- include('../partials/grafico', { serie: stats.serie, campo: 'ingresos', etiqueta: 'ingresos' }) %></section>
+  <section class="panel"><h2>Días más pedidos</h2><%- include('../partials/barras', { filas: DIAS.map((d, i) => ({ texto: d, valor: stats.dias[i] })) }) %></section>
+  <section class="panel"><h2>Horarios más pedidos</h2>
+    <% const hs = stats.horas.map((v, h) => ({ texto: String(h).padStart(2, '0') + ':00', valor: v })).filter(x => x.valor); %>
+    <% if (hs.length) { %><%- include('../partials/barras', { filas: hs }) %><p class="small muted">Hora pico: <b><%= String(stats.horaPico).padStart(2, '0') %>:00</b></p><% } else { %><p class="muted">Sin reservas en el período.</p><% } %>
+  </section>
+  <section class="panel"><h2>Servicio más reservado</h2>
+    <% if (stats.mejorServicio) { %><p class="lead"><b><%= stats.mejorServicio.titulo %></b></p><p class="muted"><%= stats.mejorServicio.reservas %> reservas · <%= pesos(stats.mejorServicio.ingresos) %></p><a href="/panel/rendimiento?periodo=<%= periodo %>">Ver todos los servicios</a><% } else { %><p class="muted">Todavía no hay datos suficientes.</p><% } %>
+  </section>
+  <section class="panel"><h2>Tendencia de reseñas</h2>
+    <% if (stats.tendenciaResenas.length) { %><%- include('../partials/barras', { filas: stats.tendenciaResenas.map(t => ({ texto: MESES[Number(t.mes.slice(5)) - 1].slice(0, 3) + ' ' + t.mes.slice(0, 4), valor: t.prom, mostrar: '★ ' + fRating(t.prom) + ' (' + t.cant + ')' })) }) %><% } else { %><p class="muted">Sin reseñas todavía.</p><% } %>
+  </section>
+</div>
+<%- include('../partials/pie') %>

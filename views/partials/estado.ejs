@@ -1,0 +1,2 @@
+<%# Estado de una reserva. Recibe: estado %>
+<% const st = ESTADOS_RESERVA[estado] || { texto: estado, tono: 'muted' }; %><span class="status status--<%= st.tono %>"><%= st.texto %></span>

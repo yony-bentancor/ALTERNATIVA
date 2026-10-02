@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Destacados', sub: 'Más exposición en el inicio, tu categoría o tu zona' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <p class="panel panel--blue small"><%- icono('info', { tam: 16 }) %> Los destacados son exposición paga y siempre se marcan como <b>Patrocinado</b>. Nunca cambian tu valoración ni el orden de las reseñas.</p>
+    <% if (!lista.length) { %><%- include('../partials/vacio', { t: 'Todavía no te destacaste', ic: 'megaphone' }) %><% } %>
+    <div class="stack"><% lista.forEach(d => { const s = servicios.find(x => x.id === d.servicioId); const ctr = d.impresiones ? Math.round(d.clics / d.impresiones * 1000) / 10 : 0; %>
+      <article class="panel">
+        <div class="row row--between"><h3 style="margin:0"><%= { inicio: 'Inicio', categoria: 'Categoría', zona: 'Zona', busqueda: 'Búsqueda', recomendacion: 'Recomendados' }[d.tipo] %><%= d.tipo === 'categoria' && catMap.get(d.categoriaId) ? ': ' + catMap.get(d.categoriaId).nombre : '' %><%= d.tipo === 'zona' && d.departamento ? ': ' + d.departamento : '' %></h3>
+        <span class="pill<%= d.estado === 'activo' ? ' pill--ok' : '' %>"><%= { programado: 'Programado', activo: 'Activo', pausado: d.estadoPago === 'pendiente' ? 'Pendiente de aprobación' : 'Pausado', terminado: 'Terminado', cancelado: 'Cancelado' }[d.estado] %></span></div>
+        <p class="small muted"><%= s ? s.titulo : 'Tu ficha completa' %> · <%= fCorta(d.desde) %> al <%= fCorta(d.hasta) %><%= d.precio ? ' · ' + pesos(d.precio) : '' %></p>
+        <div class="row small"><span><b><%= d.impresiones || 0 %></b> apariciones</span><span><b><%= d.clics || 0 %></b> clics</span><span>CTR <b><%= fPct(ctr) %></b></span></div>
+      </article><% }) %></div>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/panel/destacados">
+      <%- include('../partials/csrf') %>
+      <h2>Solicitar destacado</h2>
+      <div class="field"><label for="d-t">Dónde</label><select id="d-t" name="tipo" required><option value="inicio">Inicio</option><option value="categoria">Mi categoría</option><option value="zona">Mi zona<%= e.ubicacion && e.ubicacion.departamento ? ' (' + e.ubicacion.departamento + ')' : '' %></option><option value="recomendacion">Recomendados</option></select></div>
+      <div class="field"><label for="d-c">Categoría</label><select id="d-c" name="categoriaId"><% categorias.forEach(c => { %><option value="<%= c.id %>"><%= c.nombre %></option><% }) %></select><p class="field__hint">Solo si elegiste “Mi categoría”.</p></div>
+      <div class="field"><label for="d-s">Qué destacar</label><select id="d-s" name="servicioId"><option value="">Mi ficha completa</option><% servicios.forEach(s => { %><option value="<%= s.id %>"><%= s.titulo %></option><% }) %></select></div>
+      <div class="field"><label for="d-w">Semanas</label><input id="d-w" name="semanas" type="number" min="1" max="12" value="2"></div>
+      <div class="field"><label for="d-n">Comentarios</label><textarea id="d-n" name="notas" rows="2" maxlength="400"></textarea></div>
+      <button class="btn btn--primary" type="submit">Enviar solicitud</button>
+      <p class="small muted">Te enviamos el presupuesto; se activa cuando lo confirmás.</p>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

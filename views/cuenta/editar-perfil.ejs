@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <%- include('../partials/encabezado', { t: 'Editar perfil', volver: '/mi/perfil' }) %>
+  <% if (errores.length) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+  <form method="post" action="/mi/perfil/editar" enctype="multipart/form-data" class="stack">
+    <%- include('../partials/csrf') %>
+    <div class="row">
+      <img id="prev-av" class="avatar avatar--xl" src="<%= usuario.avatar || '' %>" alt=""<%= usuario.avatar ? '' : ' hidden' %>>
+      <div class="field" style="flex:1"><label for="pe-a">Foto <span class="muted">(opcional)</span></label><input id="pe-a" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" data-preview="#prev-av"><% if (usuario.avatar) { %><label class="check"><input type="checkbox" name="quitarFoto" value="1"><span>Quitar foto</span></label><% } %></div>
+    </div>
+    <div class="field"><label for="pe-n">Nombre y apellido</label><input id="pe-n" name="nombre" required value="<%= usuario.nombre %>"></div>
+    <div class="field"><label for="pe-e">Correo</label><input id="pe-e" name="email" type="email" required value="<%= usuario.email %>"></div>
+    <div class="field"><label for="pe-t">Celular</label><input id="pe-t" name="telefono" type="tel" value="<%= usuario.telefono || '' %>" placeholder="099 123 456"></div>
+    <div class="grid-2">
+      <div class="field"><label for="pe-d">Departamento</label><select id="pe-d" name="departamento"><option value="">—</option><% DEPARTAMENTOS.forEach(d => { %><option<%= usuario.ubicacion?.departamento === d ? ' selected' : '' %>><%= d %></option><% }) %></select></div>
+      <div class="field"><label for="pe-c">Ciudad</label><input id="pe-c" name="ciudad" value="<%= usuario.ubicacion?.ciudad || '' %>"></div>
+    </div>
+    <div class="field"><label for="pe-b">Barrio</label><input id="pe-b" name="barrio" value="<%= usuario.ubicacion?.barrio || '' %>"></div>
+    <button class="btn btn--primary" type="submit">Guardar</button>
+  </form>
+</div>
+<%- include('../partials/pie') %>

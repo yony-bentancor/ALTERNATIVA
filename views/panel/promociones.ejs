@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Promociones', sub: 'Descuentos que se aplican solos al reservar (o con código)' }) %>
+<div class="layout-aside">
+  <div>
+    <% if (!lista.length) { %><%- include('../partials/vacio', { t: 'No tenés promociones', texto: 'Atraé clientes nuevos con un descuento en su primera sesión.', ic: 'tag' }) %><% } %>
+    <div class="stack"><% lista.forEach(p => { const sv = (p.servicios || []).map(id => servicios.find(s => s.id === id)?.titulo).filter(Boolean); %>
+      <article class="panel">
+        <div class="row row--between"><h3 style="margin:0"><%= p.titulo %> <span class="pill pill--brand">−<%= p.descuento %>%</span></h3><span class="pill<%= p.estado === 'activa' ? ' pill--ok' : '' %>"><%= { activa: 'Activa', pausada: 'Pausada', terminada: 'Terminada', en_revision: 'En revisión' }[p.estado] %></span></div>
+        <% if (p.descripcion) { %><p class="small"><%= p.descripcion %></p><% } %>
+        <p class="small muted"><%= { todos: 'Para todos', nuevos: 'Solo clientes nuevos', recurrentes: 'Solo clientes recurrentes' }[p.publico] %> · <%= sv.length ? sv.join(', ') : 'Todos tus servicios' %><% if (p.codigo) { %> · código <b><%= p.codigo %></b><% } %></p>
+        <p class="small muted"><%= p.desde ? 'Desde ' + fCorta(p.desde) : 'Desde ya' %><%= p.hasta ? ' hasta ' + fCorta(new Date(new Date(p.hasta) - 1)) : ', sin vencimiento' %> · usada <%= p.usos || 0 %><%= p.maxUsos ? ' de ' + p.maxUsos : '' %> veces</p>
+        <% if (['activa', 'pausada'].includes(p.estado)) { %><form method="post" action="/panel/promociones/<%= p.id %>/estado"><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit"><%= p.estado === 'activa' ? 'Pausar' : 'Reactivar' %></button></form><% } %>
+      </article><% }) %></div>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/panel/promociones">
+      <%- include('../partials/csrf') %>
+      <h2>Nueva promoción</h2>
+      <div class="field"><label for="p-t">Título</label><input id="p-t" name="titulo" required maxlength="100" placeholder="Primera sesión con descuento"></div>
+      <div class="field"><label for="p-d">Descuento (%)</label><input id="p-d" name="descuento" type="number" min="5" max="50" value="10" required><p class="field__hint">Lo financiás vos: se descuenta de tu precio, no de la tarifa de Alternativa.</p></div>
+      <div class="field"><label for="p-p">Para quién</label><select id="p-p" name="publico"><option value="todos">Todos</option><option value="nuevos">Clientes nuevos</option><option value="recurrentes">Clientes recurrentes</option></select></div>
+      <fieldset class="field"><legend>Servicios (ninguno = todos)</legend><% servicios.forEach(s => { %><label class="check"><input type="checkbox" name="servicios" value="<%= s.id %>"> <%= s.titulo %></label><% }) %></fieldset>
+      <div class="field"><label for="p-c">Código (opcional)</label><input id="p-c" name="codigo" maxlength="20" placeholder="YOGA10" style="text-transform:uppercase"><p class="field__hint">Si ponés código, el descuento solo aplica a quien lo ingrese.</p></div>
+      <div class="grid-2"><div class="field"><label for="p-de">Desde</label><input id="p-de" name="desde" type="date" min="<%= hoy %>"></div><div class="field"><label for="p-h">Hasta</label><input id="p-h" name="hasta" type="date" min="<%= hoy %>"></div></div>
+      <div class="field"><label for="p-m">Máximo de usos (0 = sin límite)</label><input id="p-m" name="maxUsos" type="number" min="0" value="0"></div>
+      <div class="field"><label for="p-ds">Descripción</label><textarea id="p-ds" name="descripcion" rows="2" maxlength="500"></textarea></div>
+      <button class="btn btn--primary" type="submit">Crear promoción</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

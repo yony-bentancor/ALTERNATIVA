@@ -1,0 +1,111 @@
+<%- include('../partials/head') %>
+<% const u = e.ubicacion || {}; const orden = (e.diseno && e.diseno.orden) || ['servicios','sobre','galeria','video','resenas','ubicacion'];
+   const destacado = e.diseno && e.diseno.servicioDestacado; %>
+<div class="variant-<%= (e.diseno && e.diseno.variante) || 'clasica' %>">
+<% if (vistaPrevia) { %><div class="flash flash--warn" style="margin-bottom:12px"><%- icono('eye', { tam: 18 }) %><span>Vista previa: esta ficha todavía no está publicada (<%= ESTADOS_ESPECIALISTA[e.estado] %>). Solo la ves vos<%= usuario && usuario.rol === 'admin' ? ' y administración' : '' %>.</span></div><% } %>
+<% if (!reservable && !vistaPrevia) { %><div class="flash" style="margin-bottom:12px"><%- icono('info', { tam: 18 }) %><span>Este perfil fue cargado por Alternativa y el especialista todavía no lo activó: por ahora no recibe reservas online. Podés guardarlo en favoritos.</span></div><% } %>
+
+<div class="profile-cover" style="background-image:url('<%= e.portada || '' %>')" role="img" aria-label="Portada de <%= e.nombre %>"></div>
+<div class="profile-head">
+  <% if (e.avatar) { %><img class="avatar avatar--xl" src="<%= e.avatar %>" alt="Foto de <%= e.nombre %>"><% } else { %><span class="avatar avatar--xl avatar--initial"><%= e.nombre[0] %></span><% } %>
+  <div style="flex:1;min-width:0">
+    <h1><%= e.nombre %></h1>
+    <p class="profile-head__headline"><%= e.titular %></p>
+    <div class="profile-badges">
+      <% if (e.verificacion && e.verificacion.estado === 'verificada') { %><span class="badge badge--verified" title="Alternativa verificó la identidad"><%- icono('shield', { tam: 14 }) %>Identidad verificada</span><% } %>
+      <% if (e.plan === 'profesional') { %><span class="badge badge--new"><%- icono('sparkle', { tam: 14 }) %>Plan Profesional</span><% } %>
+      <% categorias.forEach(c => { %><a class="chip" href="/<%= c.slug %>"><%= c.nombre %></a><% }) %>
+    </div>
+  </div>
+</div>
+
+<div class="layout-aside" style="margin-top:18px">
+  <div>
+    <div class="profile-facts">
+      <% if (e.stats && e.stats.resenas) { %><span><%- icono('star', { tam: 16, clase: 'rating__star' }) %><b><%= fRating(e.stats.rating) %></b> · <%= e.stats.resenas %> reseñas verificadas</span><% } %>
+      <% if (u.barrio || u.ciudad) { %><span><%- icono('pin', { tam: 16 }) %><%= [u.barrio, u.ciudad].filter(Boolean).join(', ') %></span><% } %>
+      <% if (e.anios) { %><span><%- icono('clock', { tam: 16 }) %><%= e.anios %> años de experiencia</span><% } %>
+      <% if (e.stats && e.stats.realizadas) { %><span><%- icono('checkCircle', { tam: 16 }) %><%= e.stats.realizadas %> sesiones realizadas</span><% } %>
+      <% if ((e.idiomas || []).length > 1) { %><span><%- icono('globe', { tam: 16 }) %><%= e.idiomas.join(', ') %></span><% } %>
+    </div>
+    <p style="margin-top:8px"><% (e.modalidades || []).forEach(m => { %><span class="chip" style="margin-right:4px"><%- icono(MODALIDADES[m].icono, { tam: 14 }) %><%= MODALIDADES[m].texto %></span><% }) %></p>
+
+    <% orden.forEach(sec => { %>
+      <% if (sec === 'servicios') { %>
+      <section class="section" id="servicios">
+        <h2>Servicios</h2>
+        <% if (!cards.length) { %><p class="muted">Todavía no hay servicios publicados.</p><% } %>
+        <ul class="svc-list">
+          <% cards.forEach(t => { const s = t.servicio; %>
+          <li class="svc<%= destacado === s.id ? ' svc--featured' : '' %>">
+            <h3 class="svc__title"><a href="/servicios/<%= e.slug %>/<%= s.slug %>"><%= s.titulo %></a> <% if (s.estado !== 'activo') { %><span class="pill pill--warn"><%= s.estado %></span><% } %></h3>
+            <div class="svc__meta"><span><%- icono('clock', { tam: 14 }) %> <%= duracion(s.duracion) %></span><%- include('../partials/rating', { r: s.rating, compacto: true }) %><% (s.modalidades || []).forEach(m => { %><span><%= MODALIDADES[m].corto %></span><% }) %></div>
+            <div class="svc__price"><strong><%= pesos(t.precio) %></strong><span class="muted small">precio final</span></div>
+          </li>
+          <% }) %>
+        </ul>
+      </section>
+      <% } else if (sec === 'sobre') { %>
+      <section class="section" id="sobre">
+        <h2>Sobre <%= e.nombre.split(' ')[0] %></h2>
+        <div class="prose"><%- markdown(e.bio) %></div>
+        <% if (e.experiencia) { %><h3>Experiencia</h3><p><%= e.experiencia %></p><% } %>
+        <% if (e.formacion) { %><h3>Formación</h3><p><%= e.formacion %></p><% } %>
+        <% if (certificaciones.length) { %>
+        <h3>Certificaciones</h3>
+        <% certificaciones.forEach(c => { %><div class="cred cred--<%= c.estado === 'verificada' ? 'verified' : 'declared' %>"><%- icono(c.estado === 'verificada' ? 'checkCircle' : 'file', { tam: 18 }) %><div><b><%= c.titulo %></b><div class="small muted"><%= c.institucion %><%= c.anio ? ' · ' + c.anio : '' %> · <%= c.estado === 'verificada' ? 'Verificada por Alternativa' : 'Declarada por el especialista' %></div></div></div><% }) %>
+        <% } %>
+        <% if (e.redes && e.redes.instagram) { %><p class="small"><a href="https://instagram.com/<%= e.redes.instagram %>" target="_blank" rel="noopener">@<%= e.redes.instagram %> en Instagram</a></p><% } %>
+      </section>
+      <% } else if (sec === 'galeria' && galeria.length) { %>
+      <section class="section" id="galeria">
+        <div class="section__head"><h2>Fotos</h2><a href="/especialistas/<%= e.slug %>/galeria">Ver todas (<%= galeria.length %>)</a></div>
+        <div class="gallery"><% galeria.slice(0, 8).forEach(m => { %><a href="<%= m.url %>" target="_blank" rel="noopener"><img src="<%= m.url %>" alt="<%= m.epigrafe || 'Foto de ' + e.nombre %>" loading="lazy"></a><% }) %></div>
+      </section>
+      <% } else if (sec === 'video' && e.video) { %>
+      <section class="section" id="video"><h2>Video de presentación</h2><div class="video-frame"><video src="<%= e.video %>" controls preload="metadata" playsinline<%- e.poster ? ` poster="${e.poster}"` : '' %>></video></div></section>
+      <% } else if (sec === 'resenas') { %>
+      <section class="section" id="resenas">
+        <h2>Reseñas verificadas <span class="muted">(<%= totalResenas %>)</span></h2>
+        <% if (!resenas.length) { %><p class="muted">Todavía no tiene reseñas. Las reseñas solo las escriben personas que hicieron una sesión.</p><% } %>
+        <% resenas.forEach(rv => { %>
+        <article class="review">
+          <div class="review__head"><span class="review__who"><%= rv.autor %></span><%- include('../partials/estrellas', { n: rv.puntaje, tam: 14 }) %></div>
+          <div class="review__meta"><%= servMap.get(rv.servicioId)?.titulo || '' %> · <%= fCorta(rv.creado) %> · <span class="review__verified"><%- icono('checkCircle', { tam: 13 }) %>Sesión realizada</span><% if (rv.estado === 'en_revision') { %> · <span class="pill">En revisión</span><% } %></div>
+          <% if (rv.comentario) { %><p class="review__body"><%= rv.comentario %></p><% } %>
+          <% if (rv.respuesta) { %><div class="review__reply"><b>Respuesta de <%= e.nombre.split(' ')[0] %>:</b> <%= rv.respuesta.texto %></div><% } %>
+        </article>
+        <% }) %>
+      </section>
+      <% } else if (sec === 'ubicacion' && (u.barrio || u.ciudad) && (e.modalidades || []).some(m => m !== 'online')) { %>
+      <section class="section" id="ubicacion">
+        <h2>Ubicación</h2>
+        <p class="muted small">Zona aproximada. La dirección exacta se comparte al confirmar la reserva.<% if ((e.modalidades || []).includes('domicilio')) { %> También atiende a domicilio (radio de <%= u.radioKm || 10 %> km).<% } %></p>
+        <%- include('../partials/mapa', { lugar: { q: [u.barrio, u.ciudad, u.departamento, 'Uruguay'].filter(Boolean).join(', ') }, texto: [u.barrio, u.ciudad].filter(Boolean).join(', '), exacto: false }) %>
+      </section>
+      <% } %>
+    <% }) %>
+
+    <% if (usuario && !propio) { %>
+    <details class="section small"><summary class="muted" style="cursor:pointer">Reportar este perfil</summary>
+      <form method="post" action="/reportar" class="form" style="margin-top:10px"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="especialista"><input type="hidden" name="objetivoId" value="<%= e.id %>">
+        <div class="field"><label for="rp-m">Motivo</label><select id="rp-m" name="motivo" required><option value="">Elegí…</option><% Object.entries({ falso: 'Contenido falso o engañoso', fraude: 'Fraude o abuso', ofensivo: 'Ofensivo o inapropiado', otro: 'Otro motivo' }).forEach(([k, v]) => { %><option value="<%= k %>"><%= v %></option><% }) %></select></div>
+        <div class="field"><label for="rp-d">Detalle</label><textarea id="rp-d" name="detalle" rows="3"></textarea></div>
+        <button class="btn btn--ghost btn--sm" type="submit">Enviar reporte</button></form>
+    </details>
+    <% } %>
+  </div>
+
+  <aside>
+    <div class="panel stack">
+      <% if (proximo) { %><p class="next-slot" style="margin:0"><%- icono('clock', { tam: 16 }) %>Próximo turno: <%= fDiaCercano(proximo.fecha) %> a las <%= proximo.hora %></p><% } %>
+      <% if (reservable && cards.length) { %><a class="btn btn--primary btn--block btn--lg" href="/reservar/<%= cards[0].servicio.id %>">Reservar</a><% } %>
+      <% if (propio) { %><a class="btn btn--ghost btn--block" href="/panel/perfil">Editar mi ficha</a><% } else if (reservable) { %><a class="btn btn--ghost btn--block" href="<%= usuario ? '/mi/mensajes/nuevo/' + e.id : '/ingresar?volver=/especialistas/' + e.slug %>"><%- icono('chat', { tam: 18 }) %> Enviar mensaje</a><% } %>
+      <%- include('../partials/whatsapp', { e, wa }) %>
+      <% if (usuario) { %><button type="button" class="btn btn--ghost btn--block fav<%= favorito ? ' is-on' : '' %>" style="margin:0;align-self:stretch" data-fav="especialista" data-id="<%= e.id %>" aria-pressed="<%= favorito ? 'true' : 'false' %>"><%- icono('heart', { tam: 18 }) %> Favorito</button><% } %>
+      <p class="small muted" style="margin:0"><%- icono('shield', { tam: 14 }) %> Pagás en Alternativa con Mercado Pago. Si el especialista cancela, te devolvemos el 100%.</p>
+    </div>
+  </aside>
+</div>
+</div>
+<%- include('../partials/pie') %>

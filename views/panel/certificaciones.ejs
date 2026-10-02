@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Certificaciones', sub: 'Formación y títulos que se muestran en tu ficha', volver: '/panel/verificacion' }) %>
+<div class="layout-aside">
+  <div>
+    <% if (!lista.length) { %><%- include('../partials/vacio', { t: 'Todavía no agregaste certificaciones', texto: 'Contale a tus clientes dónde te formaste.', ic: 'award' }) %><% } %>
+    <ul class="list panel"><% lista.forEach(c => { %>
+      <li class="row row--between">
+        <span><b><%= c.titulo %></b><br><span class="small muted"><%= [c.institucion, c.anio].filter(Boolean).join(' · ') %></span><% if (c.revision && c.revision.nota) { %><br><span class="small"><%= c.revision.nota %></span><% } %></span>
+        <span class="row"><span class="pill<%= c.estado === 'verificada' ? ' pill--ok' : c.estado === 'rechazada' ? ' pill--danger' : c.estado === 'pendiente' ? ' pill--warn' : '' %>"><%= { declarada: 'Declarada', pendiente: 'En revisión', verificada: 'Verificada', rechazada: 'No verificada' }[c.estado] %></span>
+        <form method="post" action="/panel/certificaciones/<%= c.id %>/eliminar" data-confirm="¿Eliminar esta certificación?"><%- include('../partials/csrf') %><button class="btn btn--ghost btn--sm" type="submit" aria-label="Eliminar"><%- icono('trash', { tam: 16 }) %></button></form></span>
+      </li><% }) %></ul>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/panel/certificaciones" enctype="multipart/form-data">
+      <%- include('../partials/csrf') %>
+      <h2>Agregar</h2>
+      <div class="field"><label for="c-t">Título</label><input id="c-t" name="titulo" required maxlength="160" placeholder="Instructora de Hatha Yoga (200 h)"></div>
+      <div class="field"><label for="c-i">Institución</label><input id="c-i" name="institucion" maxlength="160"></div>
+      <div class="grid-2"><div class="field"><label for="c-a">Año</label><input id="c-a" name="anio" type="number" min="1950" max="<%= new Date().getFullYear() %>"></div>
+      <div class="field"><label for="c-c">Disciplina</label><select id="c-c" name="categoriaId"><option value="">—</option><% categorias.forEach(c => { %><option value="<%= c.id %>"><%= c.nombre %></option><% }) %></select></div></div>
+      <div class="field"><label for="c-d">Documento (opcional)</label><input id="c-d" type="file" name="documento" accept="image/*,application/pdf"><p class="field__hint">Si lo subís, lo revisamos y la marcamos como verificada. Es privado.</p></div>
+      <button class="btn btn--primary" type="submit">Agregar certificación</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

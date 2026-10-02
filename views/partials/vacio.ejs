@@ -1,0 +1,2 @@
+<%# Estado vacío. Recibe: t, texto, accion, href, ic %>
+<div class="empty"><%- icono(typeof ic !== 'undefined' ? ic : 'leaf', { tam: 32 }) %><h3><%= t %></h3><% if (typeof texto !== 'undefined' && texto) { %><p><%= texto %></p><% } %><% if (typeof accion !== 'undefined' && accion) { %><a class="btn btn--primary" href="<%= href %>"><%= accion %></a><% } %></div>

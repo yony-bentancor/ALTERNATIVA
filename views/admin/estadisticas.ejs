@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Estadísticas', sub: 'Del ' + fFechaTexto(stats.rango.desde) + ' al ' + fFechaTexto(stats.rango.hasta) }) %>
+<%- include('../partials/periodo', { periodo, base: '/admin/estadisticas' }) %>
+<div class="grid-kpi">
+  <%- include('../partials/kpi', { etiqueta: 'Reservas', valor: stats.reservas, sub: (stats.reservas ? Math.round(stats.cancelaciones / stats.reservas * 100) : 0) + '% canceladas' }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Ticket promedio', valor: pesos(stats.cantidadPagos ? Math.round(stats.bruto / stats.cantidadPagos) : 0) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Comisión neta', valor: pesos(stats.comision), sub: 'pasarela ' + pesos(stats.comisionPasarela) }) %>
+  <%- include('../partials/kpi', { etiqueta: 'Reservas por usuario activo', valor: String(stats.reservasPorUsuario).replace('.', ',') }) %>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Por categoría</h2><% if (porCategoria.length) { %><%- include('../partials/barras', { filas: porCategoria.map(([t, v]) => ({ texto: t, valor: v })) }) %><% } else { %><p class="muted">Sin datos.</p><% } %></section>
+  <section class="panel"><h2>Por departamento</h2><% if (porDepartamento.length) { %><%- include('../partials/barras', { filas: porDepartamento.map(([t, v]) => ({ texto: t, valor: v })) }) %><% } else { %><p class="muted">Sin datos.</p><% } %></section>
+  <section class="panel"><h2>Por modalidad</h2><% if (porModalidad.length) { %><%- include('../partials/barras', { filas: porModalidad.map(([t, v]) => ({ texto: (MODALIDADES[t] || {}).texto || t, valor: v })) }) %><% } else { %><p class="muted">Sin datos.</p><% } %></section>
+  <section class="panel"><h2>Por modelo de cobro</h2>
+    <% const mods = Object.entries(porModelo); if (mods.length) { %><%- include('../partials/barras', { filas: mods.map(([k, v]) => ({ texto: (MODELOS_COBRO[k] || {}).corto || k, valor: v.bruto, mostrar: pesos(v.bruto) + ' (' + v.cantidad + ')' })) }) %><% } else { %><p class="muted">Sin pagos.</p><% } %>
+  </section>
+</div>
+<section class="panel" style="margin-top:16px"><h2>Especialistas con más reservas</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Especialista</th><th class="num">Reservas</th><th class="num">Volumen</th><th class="num">Comisión</th></tr></thead><tbody>
+  <% topEspecialistas.forEach((t, i) => { %><tr><td><%= i + 1 %></td><td><a href="/admin/especialistas/<%= t.id %>"><%= t.nombre %></a></td><td class="num"><%= t.reservas %></td><td class="num"><%= pesos(t.bruto) %></td><td class="num"><%= pesos(t.comision) %></td></tr><% }) %>
+  </tbody></table></div>
+</section>
+<%- include('../partials/pie') %>

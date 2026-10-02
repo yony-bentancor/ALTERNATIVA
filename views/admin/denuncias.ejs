@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Denuncias' }) %>
+<%- include('../partials/pestanias', { items: [['abierta', '?estado=abierta', 'Abiertas'], ['resuelta', '?estado=resuelta', 'Resueltas'], ['descartada', '?estado=descartada', 'Descartadas']], actual: estado }) %>
+<form class="toolbar"><input type="hidden" name="estado" value="<%= estado %>"><div class="field"><select name="tipo" aria-label="Tipo"><option value="">Todo tipo de contenido</option><% Object.entries(tipos).forEach(([k, t]) => { %><option value="<%= k %>"<%= query.tipo === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div><button class="btn btn--ghost btn--sm" type="submit">Filtrar</button></form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'No hay denuncias acá', ic: 'flag' }) %><% } %>
+<div class="stack"><% p.items.forEach(d => { const o = objetivos[d.tipo + ':' + d.objetivoId]; const den = denunciantes.get(d.denuncianteId); %>
+  <article class="panel">
+    <div class="row row--between"><span><%- include('../partials/pill', { texto: tipos[d.tipo] || d.tipo, tono: 'info' }) %> <b><%= motivos[d.motivo] || d.motivo %></b></span><span class="small muted"><%= fFechaHora(d.creado) %> · <%= den ? den.nombre : 'Anónimo' %> (<%= d.rolDenunciante || '' %>)</span></div>
+    <% if (d.detalle) { %><p class="small"><%= d.detalle %></p><% } %>
+    <div class="panel" style="background:var(--gray);margin:8px 0">
+      <% if (!o) { %><span class="small muted">El contenido ya no existe.</span>
+      <% } else if (d.tipo === 'resena') { %><%- include('../partials/estrellas', { n: o.puntaje, tam: 14 }) %> <span class="small"><%= o.autor %> · <%= o.estado %></span><p class="small"><%= o.comentario %></p><a class="small" href="/admin/resenas?q=<%= encodeURIComponent((o.comentario || '').slice(0, 30)) %>">Moderar reseña</a>
+      <% } else if (d.tipo === 'multimedia') { %><a href="<%= o.url %>" target="_blank"><img src="<%= o.url %>" alt="" style="max-height:160px;border-radius:8px"></a><br><a class="small" href="/admin/moderacion?tab=reportado">Moderar archivo</a>
+      <% } else if (d.tipo === 'especialista') { %><a href="/admin/especialistas/<%= o.id %>"><b><%= o.nombre %></b></a> · <%= ESTADOS_ESPECIALISTA[o.estado] %>
+      <% } else if (d.tipo === 'servicio') { %><a href="/admin/servicios/<%= o.id %>"><b><%= o.titulo %></b></a>
+      <% } else if (d.tipo === 'usuario') { %><a href="/admin/usuarios/<%= o.id %>"><b><%= o.nombre %></b></a> · <%= o.email %>
+      <% } else if (d.tipo === 'mensaje') { %><p class="small">“<%= o.texto %>”</p><% } %>
+    </div>
+    <% if (d.estado === 'abierta') { %>
+    <form method="post" action="/admin/denuncias/<%= d.id %>" class="row"><%- include('../partials/csrf') %><input name="nota" placeholder="Qué se hizo" style="flex:1;min-width:200px" aria-label="Nota"><button class="btn btn--primary btn--sm" name="decision" value="resolver" type="submit">Marcar resuelta</button><button class="btn btn--ghost btn--sm" name="decision" value="descartar" type="submit">Descartar</button></form>
+    <% } else if (d.resolucion) { %><p class="small muted"><%= d.resolucion.accion %> · <%= fFecha(d.resolucion.fecha) %><%= d.resolucion.nota ? ' · ' + d.resolucion.nota : '' %></p><% } %>
+  </article>
+<% }) %></div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

@@ -1,0 +1,10 @@
+<aside class="sidenav" aria-label="Secciones">
+  <% secciones.forEach(g => { %>
+  <div class="sidenav__group">
+    <p class="sidenav__title"><%= g.titulo %></p>
+    <% g.items.forEach(([k, href, txt, ic, n]) => { %>
+    <a class="sidenav__link<%= activo === k ? ' is-active' : '' %>" href="<%= href %>"<%- activo === k ? ' aria-current="page"' : '' %>><%- icono(ic, { tam: 18 }) %><span><%= txt %></span><% if (n) { %><span class="pill pill--brand"><%= n %></span><% } %></a>
+    <% }) %>
+  </div>
+  <% }) %>
+</aside>

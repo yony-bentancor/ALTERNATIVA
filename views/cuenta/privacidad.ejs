@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Privacidad', sub: 'Tus datos se tratan según la Ley N.º 18.331 de Protección de Datos Personales.' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'perfil' }) %>
+<% const pv = usuario.privacidad || {}; %>
+<div class="grid-2" style="align-items:start">
+  <form method="post" action="/mi/privacidad" class="panel">
+    <%- include('../partials/csrf') %>
+    <h2>Qué se muestra</h2>
+    <label class="check"><input type="checkbox" name="soloNombre" value="1"<%= pv.soloNombre !== false ? ' checked' : '' %>><span>En mis reseñas, mostrar solo mi nombre e inicial<small class="muted">Aparecés como “<%= nombrePublico(usuario) %>”.</small></span></label>
+    <label class="check"><input type="checkbox" name="compartirContacto" value="1"<%= pv.compartirContacto !== false ? ' checked' : '' %>><span>Compartir mi celular con especialistas con los que tengo una reserva</span></label>
+    <button class="btn btn--primary" type="submit">Guardar</button>
+  </form>
+  <div class="stack-lg">
+    <section class="panel"><h2>Tus datos</h2><p class="muted">Descargá una copia de tu cuenta, reservas, pagos, reseñas y mensajes.</p><a class="btn btn--ghost" href="/mi/privacidad/mis-datos.json"><%- icono('upload', { tam: 18 }) %> Exportar mis datos</a></section>
+    <details class="panel"><summary style="cursor:pointer"><b>Eliminar mi cuenta</b></summary>
+      <p class="small muted">Anonimizamos tus datos personales. Las reservas y pagos se conservan el tiempo que exige la normativa. No se puede deshacer.</p>
+      <form method="post" action="/mi/privacidad/eliminar" data-confirm="¿Eliminar tu cuenta definitivamente?"><%- include('../partials/csrf') %><div class="field"><label for="el-c">Confirmá con tu contraseña</label><input id="el-c" name="clave" type="password" required></div><button class="btn btn--danger" type="submit">Eliminar cuenta</button></form>
+    </details>
+  </div>
+</div>
+<%- include('../partials/pie') %>

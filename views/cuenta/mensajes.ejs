@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Mensajes' }) %>
+<%- include('../partials/cuenta-nav', { actual: 'mensajes' }) %>
+<% if (!lista.length) { %><%- include('../partials/vacio', { t: 'No tenés conversaciones', texto: 'Podés escribirle a un especialista desde su ficha.', accion: 'Buscar especialistas', href: '/buscar', ic: 'chat' }) %><% } %>
+<ul class="list panel">
+  <% lista.forEach(c => { const e = esp.get(c.especialistaId); %>
+  <li><a class="list-row" href="/mi/mensajes/<%= c.id %>">
+    <% if (e.avatar) { %><img class="avatar avatar--md" src="<%= e.avatar %>" alt=""><% } else { %><span class="avatar avatar--md avatar--initial"><%= e.nombre[0] %></span><% } %>
+    <div class="list-row__main"><p class="list-row__title<%= c.sinLeerUsuario ? ' conv-unread' : '' %>"><%= e.nombre %></p><p class="list-row__sub truncate"><%= c.vistaPrevia || 'Conversación nueva' %></p></div>
+    <span class="small muted"><%= fRelativa(c.ultimoMensaje) %></span><% if (c.sinLeerUsuario) { %><span class="pill pill--brand"><%= c.sinLeerUsuario %></span><% } %>
+  </a></li>
+  <% }) %>
+</ul>
+<%- include('../partials/pie') %>

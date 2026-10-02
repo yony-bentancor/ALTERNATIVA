@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <h1>Recuperar contraseña</h1>
+  <% if (enviado) { %>
+    <div class="panel panel--blue"><p>Si el correo está registrado, te enviamos un enlace para elegir una nueva contraseña. Vence en 1 hora.</p>
+    <% if (enlaceDemo) { %><p class="small"><b>Modo demostración</b> (no se envían emails reales): <a href="<%= enlaceDemo %>">abrir el enlace de restablecimiento</a>.</p><% } %></div>
+    <p class="auth__alt"><a href="/ingresar">Volver a ingresar</a></p>
+  <% } else { %>
+    <p class="muted">Escribí el correo de tu cuenta y te mandamos un enlace.</p>
+    <form method="post" action="/recuperar">
+      <%- include('../partials/csrf') %>
+      <div class="field"><label for="rc-e">Correo electrónico</label><input id="rc-e" name="email" type="email" required autocomplete="email"></div>
+      <button class="btn btn--primary btn--block" type="submit">Enviar enlace</button>
+    </form>
+  <% } %>
+</div>
+<%- include('../partials/pie') %>

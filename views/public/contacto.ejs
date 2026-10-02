@@ -1,0 +1,25 @@
+<%- include('../partials/head') %>
+<div class="layout-aside">
+  <div>
+    <%- include('../partials/encabezado', { t: 'Contacto', sub: 'Contanos en qué te podemos ayudar. Respondemos en el día hábil.' }) %>
+    <% if (errores.length) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+    <form method="post" action="/contacto" class="form">
+      <%- include('../partials/csrf') %>
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Web <input name="web" tabindex="-1" autocomplete="off"></label></div>
+      <div class="grid-2"><div class="field"><label for="c-n">Tu nombre</label><input id="c-n" name="nombre" required value="<%= datos.nombre || '' %>"></div><div class="field"><label for="c-e">Correo</label><input id="c-e" name="email" type="email" required value="<%= datos.email || '' %>"></div></div>
+      <div class="field"><label for="c-t">Tema</label><select id="c-t" name="tema"><% Object.entries(temas).forEach(([k, v]) => { %><option value="<%= k %>"<%= datos.tema === k ? ' selected' : '' %>><%= v %></option><% }) %></select></div>
+      <div class="field"><label for="c-a">Asunto</label><input id="c-a" name="asunto" required maxlength="200" value="<%= datos.asunto || '' %>"></div>
+      <div class="field"><label for="c-m">Mensaje</label><textarea id="c-m" name="mensaje" rows="6" required><%= datos.mensaje || '' %></textarea></div>
+      <button class="btn btn--primary" type="submit">Enviar mensaje</button>
+    </form>
+  </div>
+  <aside>
+    <div class="panel stack">
+      <h3>Otras formas de contacto</h3>
+      <% if (cfg.sitio.whatsappSoporte) { %><a class="btn btn--wa btn--block" href="<%= enlaceWhatsapp(cfg.sitio.whatsappSoporte, 'Hola Alternativa, tengo una consulta') %>" target="_blank" rel="noopener"><%- icono('chat', { tam: 18 }) %> WhatsApp</a><% } %>
+      <a class="btn btn--ghost btn--block" href="mailto:<%= cfg.sitio.email %>"><%- icono('mail', { tam: 18 }) %> <%= cfg.sitio.email %></a>
+      <a href="/preguntas-frecuentes">Ver preguntas frecuentes</a>
+    </div>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

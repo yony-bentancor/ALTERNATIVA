@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<div class="auth">
+  <h1>Elegí una nueva contraseña</h1>
+  <% if (invalido) { %>
+    <%- include('../partials/vacio', { t: 'El enlace no es válido o venció', texto: 'Pedí uno nuevo: los enlaces duran 1 hora.', accion: 'Pedir otro enlace', href: '/recuperar', ic: 'lock' }) %>
+  <% } else { %>
+    <% if (error) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= error %></span></div><% } %>
+    <form method="post" action="/restablecer/<%= token %>">
+      <%- include('../partials/csrf') %>
+      <div class="field"><label for="rs-p">Nueva contraseña</label><input id="rs-p" name="clave" type="password" required minlength="8" autocomplete="new-password"></div>
+      <div class="field"><label for="rs-p2">Repetila</label><input id="rs-p2" name="clave2" type="password" required minlength="8" autocomplete="new-password"></div>
+      <button class="btn btn--primary btn--block" type="submit">Guardar y entrar</button>
+    </form>
+  <% } %>
+</div>
+<%- include('../partials/pie') %>

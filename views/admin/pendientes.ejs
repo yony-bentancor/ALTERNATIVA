@@ -1,0 +1,35 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Pendientes', sub: 'Todo lo que espera una decisión de administración' }) %>
+<div class="grid-kpi">
+  <% [['Verificaciones de identidad', verificaciones, '/admin/verificaciones'], ['Certificaciones', certificaciones, '/admin/verificaciones#certificaciones'], ['Fotos y videos', multimedia, '/admin/moderacion'], ['Reseñas en revisión', resenas, '/admin/resenas?revision=1'], ['Denuncias abiertas', denuncias, '/admin/denuncias'], ['Consultas abiertas', consultas, '/admin/soporte'], ['Reembolsos fallidos', reembolsos, '/admin/reembolsos?estado=fallido'], ['Destacados por aprobar', destacados, '/admin/destacados']].forEach(([t, n, h]) => { %>
+  <a class="kpi<%= n ? ' kpi--alert' : '' %>" href="<%= h %>" style="text-decoration:none;color:inherit"><p class="kpi__label"><%= t %></p><p class="kpi__value"><%= n %></p><p class="kpi__sub"><%= n ? 'Revisar →' : 'Al día' %></p></a>
+  <% }) %>
+</div>
+<div class="grid-2" style="margin-top:16px;align-items:start">
+  <section class="panel"><h2>Fichas en revisión (<%= enRevision.length %>)</h2>
+    <% if (!enRevision.length) { %><p class="muted">No hay fichas esperando.</p><% } %>
+    <ul class="list"><% enRevision.forEach(e => { %><li class="row row--between"><span><a href="/admin/especialistas/<%= e.id %>"><b><%= e.nombre %></b></a><br><span class="small muted">Enviada <%= fRelativa(e.actualizado || e.creado) %></span></span>
+      <form method="post" action="/admin/especialistas/<%= e.id %>/estado"><%- include('../partials/csrf') %><input type="hidden" name="estado" value="activo"><button class="btn btn--primary btn--sm" type="submit">Publicar</button></form></li><% }) %></ul>
+  </section>
+  <section class="panel"><h2>Cambios sensibles (<%= conCambios.length %>)</h2>
+    <% if (!conCambios.length) { %><p class="muted">Sin cambios pendientes.</p><% } %>
+    <% conCambios.forEach(e => { (e.cambiosPendientes || []).forEach(c => { %>
+      <div class="row row--between" style="padding:8px 0;border-bottom:1px solid var(--line)">
+        <span><a href="/admin/especialistas/<%= e.id %>"><b><%= e.nombre %></b></a><br><span class="small"><%= c.campo === 'nombre' ? 'Nombre: ' + c.valor : 'Categorías: ' + [].concat(c.valor).length + ' seleccionadas' %></span></span>
+        <span class="row"><% ['aprobar', 'rechazar'].forEach(dec => { %><form method="post" action="/admin/especialistas/<%= e.id %>/cambios"><%- include('../partials/csrf') %><input type="hidden" name="campo" value="<%= c.campo %>"><input type="hidden" name="decision" value="<%= dec %>"><input type="hidden" name="volver" value="pendientes"><button class="btn btn--sm <%= dec === 'aprobar' ? 'btn--primary' : 'btn--ghost' %>" type="submit"><%= dec === 'aprobar' ? 'Aprobar' : 'Rechazar' %></button></form><% }) %></span>
+      </div>
+    <% }) }) %>
+  </section>
+  <section class="panel"><h2>Incidencias en reservas (<%= incidencias.length %>)</h2>
+    <% if (!incidencias.length) { %><p class="muted">Sin incidencias abiertas.</p><% } %>
+    <ul class="list"><% incidencias.forEach(r => { %><li><a href="/admin/reservas/<%= r.id %>"><b><%= r.codigo %></b></a> · <%= r.foto.especialista %><br><span class="small muted"><%= recortar(r.incidencia.nota || '', 140) %></span></li><% }) %></ul>
+  </section>
+  <section class="panel"><h2>Servicios y categorías</h2>
+    <% if (!servicios.length && !categorias.length) { %><p class="muted">Nada para revisar.</p><% } %>
+    <ul class="list">
+      <% servicios.forEach(s => { %><li><a href="/admin/servicios/<%= s.id %>"><b><%= s.titulo %></b></a> · <%= espMap.get(s.especialistaId)?.nombre %><br><span class="small muted"><%= s.motivoEstado || 'Servicio en revisión' %></span></li><% }) %>
+      <% categorias.forEach(c => { %><li><a href="/admin/categorias/<%= c.id %>"><b>Categoría propuesta: <%= c.nombre %></b></a><br><span class="small muted"><%= c.descripcion %></span></li><% }) %>
+    </ul>
+  </section>
+</div>
+<%- include('../partials/pie') %>

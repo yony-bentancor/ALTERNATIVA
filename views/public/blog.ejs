@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Blog', sub: 'Notas sobre bienestar, terapias y hábitos saludables.' }) %>
+<nav class="filters"><a class="filter-chip<%= !tema ? ' is-on' : '' %>" href="/blog">Todo</a><% temas.forEach(t => { %><a class="filter-chip<%= tema === t ? ' is-on' : '' %>" href="/blog?tema=<%= encodeURIComponent(t) %>"><%= t %></a><% }) %></nav>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'Todavía no hay artículos', ic: 'file' }) %><% } %>
+<div class="cards">
+  <% p.items.forEach(x => { %>
+  <article class="card"><div class="card__img"><img src="<%= x.portada %>" alt="" loading="lazy"></div><div class="card__body"><span class="muted small"><%= x.categoria %> · <%= fCorta(x.publicado) %></span><h3><a href="/blog/<%= x.slug %>"><%= x.titulo %></a></h3><p class="small muted" style="margin:0"><%= x.resumen %></p></div></article>
+  <% }) %>
+</div>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

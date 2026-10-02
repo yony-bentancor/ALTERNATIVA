@@ -1,0 +1,2 @@
+<%# Estrellas fijas. Recibe: n, tam %>
+<span class="stars" aria-label="<%= n %> de 5 estrellas"><% for (let i = 1; i <= 5; i++) { %><span class="<%= i <= n ? 'on' : '' %>"><%- icono('star', { tam: typeof tam !== 'undefined' ? tam : 16 }) %></span><% } %></span>

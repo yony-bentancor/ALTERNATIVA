@@ -1,0 +1,9 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Mis reservas' }) %>
+<%- include('../partials/pestanias', { items: [['proximas', '/mi/reservas', 'Próximas', grupos.proximas.length], ['historial', '/mi/reservas?tab=historial', 'Historial', grupos.historial.length], ['canceladas', '/mi/reservas?tab=canceladas', 'Canceladas', grupos.canceladas.length]], actual: tab }) %>
+<% if (!lista.length) { %>
+  <%- include('../partials/vacio', { t: tab === 'proximas' ? 'No tenés reservas próximas' : 'No hay reservas acá', texto: tab === 'proximas' ? 'Encontrá especialistas con turnos disponibles.' : '', accion: tab === 'proximas' ? 'Buscar un servicio' : '', href: '/buscar', ic: 'calendar' }) %>
+<% } %>
+<div class="stack"><% lista.forEach(r => { %><%- include('../partials/reserva-item', { r, base: '/mi/reservas', quien: 'especialista' }) %><% }) %></div>
+<p class="small" style="margin-top:18px"><a href="/mi/resenas">Mis reseñas</a> · <a href="/mi/pagos">Historial de pagos</a></p>
+<%- include('../partials/pie') %>

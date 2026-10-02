@@ -1,0 +1,27 @@
+<%- include('../partials/head') %>
+<div class="pagehead">
+  <% if (usuario.avatar) { %><img class="avatar avatar--xl" src="<%= usuario.avatar %>" alt=""><% } else { %><span class="avatar avatar--xl avatar--initial"><%= iniciales(usuario) %></span><% } %>
+  <div class="pagehead__text"><h1><%= usuario.nombre %></h1><p class="muted">En Alternativa desde <%= fCorta(usuario.creado) %> · <%= stats.reservas %> sesiones · <%= stats.resenas %> reseñas</p></div>
+  <div class="pagehead__actions"><a class="btn btn--primary" href="/mi/perfil/editar">Editar perfil</a></div>
+</div>
+<%- include('../partials/cuenta-nav', { actual: 'perfil' }) %>
+<div class="grid-2">
+  <section class="panel"><h2>Datos personales</h2>
+    <dl class="dl">
+      <div><dt>Correo</dt><dd><%= usuario.email %> <% if (usuario.emailVerificado) { %><span class="pill pill--ok">Confirmado</span><% } else { %><span class="pill pill--warn">Sin confirmar</span><% } %></dd></div>
+      <div><dt>Celular</dt><dd><%= usuario.telefono || '—' %></dd></div>
+      <div><dt>Ubicación</dt><dd><%= [usuario.ubicacion?.barrio, usuario.ubicacion?.ciudad, usuario.ubicacion?.departamento].filter(Boolean).join(', ') || '—' %></dd></div>
+      <div><dt>Tipo de cuenta</dt><dd><%= ROLES[usuario.rol] %></dd></div>
+    </dl>
+  </section>
+  <section class="panel"><h2>Atajos</h2>
+    <ul class="list">
+      <li><a class="list-row" href="/mi/metodos-de-pago"><%- icono('card') %><span class="list-row__main">Métodos de pago</span><%- icono('chevronRight') %></a></li>
+      <li><a class="list-row" href="/mi/configuracion"><%- icono('settings') %><span class="list-row__main">Avisos y contraseña</span><%- icono('chevronRight') %></a></li>
+      <li><a class="list-row" href="/mi/privacidad"><%- icono('lock') %><span class="list-row__main">Privacidad y mis datos</span><%- icono('chevronRight') %></a></li>
+      <li><a class="list-row" href="/mi/ayuda"><%- icono('help') %><span class="list-row__main">Ayuda y soporte</span><%- icono('chevronRight') %></a></li>
+      <% if (!usuario.especialistaId) { %><li><a class="list-row" href="/panel/comenzar"><%- icono('sparkle') %><span class="list-row__main">Ofrecer mis servicios</span><%- icono('chevronRight') %></a></li><% } %>
+    </ul>
+  </section>
+</div>
+<%- include('../partials/pie') %>

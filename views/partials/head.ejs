@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es-UY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title><%= titulo ? titulo + ' · ' + cfg.sitio.nombre : cfg.sitio.nombre + ' — Terapias y bienestar en Uruguay' %></title>
+<meta name="description" content="<%= descripcion || cfg.sitio.lema %>">
+<% if (area !== 'publico' || entorno !== 'production') { %><meta name="robots" content="noindex,nofollow"><% } %>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<%= cfg.sitio.nombre %>">
+<meta property="og:title" content="<%= titulo || cfg.sitio.nombre %>">
+<meta property="og:description" content="<%= descripcion || cfg.sitio.lema %>">
+<meta property="og:image" content="<%= urlSitio %><%= imagenOg || '/img/og.png' %>">
+<meta name="theme-color" content="#3B82F6">
+<meta name="csrf-token" content="<%= csrf %>">
+<% if (vapid) { %><meta name="vapid-key" content="<%= vapid %>"><% } %>
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/css/app.css">
+<script src="/js/app.js" defer></script>
+</head>
+<body class="area-<%= area === 'panel' ? 'specialist' : area === 'admin' ? 'admin' : 'public' %>">
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<% if (modoDemo && area === 'publico') { %><div class="demo-banner">Sitio de demostración con datos de prueba · <a href="/ingresar">Probá cada rol con los usuarios de prueba</a></div><% } %>
+<%- include('header') %>
+<% if (area === 'panel' || area === 'admin') { %>
+<div class="shell">
+  <%- include('sidebar') %>
+  <main id="contenido" class="main">
+    <% if (area === 'admin') { %>
+    <details class="menu mobile-only adminmenu"><summary class="btn btn--ghost btn--sm"><%- icono('menu', { tam: 16 }) %> Secciones</summary>
+      <div class="menu__panel" style="left:0;right:auto;max-height:70vh;overflow:auto">
+        <% secciones.forEach(g => { %><p class="sidenav__title" style="margin:8px 12px 2px"><%= g.titulo %></p><% g.items.forEach(([k, href, txt, ic, n]) => { %><a href="<%= href %>"><%- icono(ic, { tam: 16 }) %><%= txt %><% if (n) { %> <span class="pill pill--brand"><%= n %></span><% } %></a><% }) %><% }) %>
+      </div>
+    </details>
+    <% } %>
+<% } else { %>
+<main id="contenido" class="main<%= typeof ancho !== 'undefined' && ancho ? ' main--wide' : '' %>">
+<% } %>
+<%- include('flash') %>

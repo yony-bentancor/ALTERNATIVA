@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<div class="auth result-hero">
+  <% if (pago.estado === 'pendiente') { %>
+    <div class="result-hero__icon result-hero__icon--wait"><%- icono('clock', { tam: 34 }) %></div>
+    <h1>Estamos confirmando tu pago</h1>
+    <p class="muted" data-payment-poll="<%= pago.id %>">Esto puede demorar unos segundos. No hace falta que vuelvas a pagar.</p>
+  <% } else { %>
+    <div class="result-hero__icon result-hero__icon--bad"><%- icono('x', { tam: 34 }) %></div>
+    <h1>El pago no se completó</h1>
+    <p class="muted">No se cobró nada. <%= r.estado === 'pendiente' ? 'Tu horario sigue reservado unos minutos: podés intentarlo de nuevo.' : 'El horario ya se liberó; elegí uno nuevo.' %></p>
+  <% } %>
+  <div class="btnbar" style="justify-content:center">
+    <% if (r.estado === 'pendiente') { %><a class="btn btn--primary" href="/pago/<%= r.id %>">Intentar de nuevo</a><% } else { %><a class="btn btn--primary" href="/reservar/<%= r.servicioId %>">Elegir otro horario</a><% } %>
+    <a class="btn btn--ghost" href="/mi/reservas">Mis reservas</a>
+  </div>
+</div>
+<%- include('../partials/pie') %>

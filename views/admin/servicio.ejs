@@ -1,0 +1,28 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: s.titulo, sub: (e ? e.nombre : '') + ' · ' + pesos(s.precio) + ' · ' + duracion(s.duracion), volver: '/admin/servicios', acciones: e && e.estado === 'activo' && s.estado === 'activo' ? '<a class="btn btn--ghost btn--sm" href="/servicios/' + e.slug + '/' + s.slug + '" target="_blank">Ver publicado</a>' : '' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <% if ((s.fotos || []).length) { %><div class="media-grid"><% s.fotos.forEach(f => { %><figure class="media-item" style="margin:0"><img src="<%= f %>" alt=""></figure><% }) %></div><% } %>
+    <section class="panel"><h2>Detalle</h2>
+      <% if (s.resumen) { %><p><b><%= s.resumen %></b></p><% } %>
+      <div class="prose"><%- markdown(s.descripcion || '') %></div>
+      <% if ((s.incluye || []).length) { %><h3>Incluye</h3><ul><% s.incluye.forEach(x => { %><li><%= x %></li><% }) %></ul><% } %>
+      <dl class="dl"><div><dt>Modalidades</dt><dd><%= (s.modalidades || []).map(m => MODALIDADES[m]?.texto).join(', ') %><%= s.recargoDomicilio ? ' · recargo a domicilio ' + pesos(s.recargoDomicilio) : '' %></dd></div><div><dt>Reservas</dt><dd><%= cantReservas %></dd></div><div><dt>Valoración</dt><dd><%= s.rating && s.rating.cant ? '★ ' + fRating(s.rating.prom) + ' (' + s.rating.cant + ')' : 'Sin reseñas' %></dd></div></dl>
+    </section>
+    <section class="panel"><h2>Últimas reseñas</h2><% if (!resenas.length) { %><p class="muted">Sin reseñas.</p><% } %><% resenas.forEach(r => { %><article class="review"><div class="review__head"><span class="review__who"><%= r.autor %></span><%- include('../partials/estrellas', { n: r.puntaje, tam: 14 }) %></div><div class="review__meta"><%= fRelativa(r.creado) %> · <%= r.estado %></div><% if (r.comentario) { %><p class="review__body"><%= r.comentario %></p><% } %></article><% }) %></section>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/admin/servicios/<%= s.id %>"><%- include('../partials/csrf') %>
+      <h3>Moderar</h3>
+      <div class="field"><label for="s-e">Estado</label><select id="s-e" name="estado"><% Object.entries({ activo: 'Publicado', pausado: 'Pausado', en_revision: 'En revisión', suspendido: 'Suspendido' }).forEach(([k, t]) => { %><option value="<%= k %>"<%= s.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+      <div class="field"><label for="s-m">Motivo (lo ve el especialista)</label><input id="s-m" name="motivoEstado" value="<%= s.motivoEstado || '' %>" maxlength="300"></div>
+      <div class="field"><label for="s-c">Categoría</label><select id="s-c" name="categoriaId"><% categorias.forEach(c => { %><option value="<%= c.id %>"<%= s.categoriaId === c.id ? ' selected' : '' %>><%= c.nombre %></option><% }) %></select></div>
+      <div class="field"><label for="s-t">Nombre</label><input id="s-t" name="titulo" value="<%= s.titulo %>" required></div>
+      <div class="field"><label for="s-r">Resumen</label><input id="s-r" name="resumen" value="<%= s.resumen || '' %>"></div>
+      <div class="field"><label for="s-d">Descripción</label><textarea id="s-d" name="descripcion" rows="6"><%= s.descripcion || '' %></textarea></div>
+      <button class="btn btn--primary btn--sm" type="submit">Guardar</button>
+      <p class="small muted">El precio y la duración los define el especialista. Las reservas existentes conservan sus condiciones.</p>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

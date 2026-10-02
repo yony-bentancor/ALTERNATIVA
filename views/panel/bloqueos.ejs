@@ -1,0 +1,34 @@
+<%- include('../partials/head') %>
+<% const borrar = (lista, i) => `<form method="post" action="/panel/agenda/bloqueos/eliminar" class="inline-form" data-confirm="¿Quitar este bloqueo?"><input type="hidden" name="_csrf" value="${csrf}"><input type="hidden" name="lista" value="${lista}"><input type="hidden" name="indice" value="${i}"><button class="btn btn--text btn--sm" type="submit">Quitar</button></form>`; %>
+<%- include('../partials/encabezado', { t: 'Bloqueos y vacaciones', sub: 'Cerrá un día, bloqueá un horario, cargá vacaciones, descansos o un horario especial.', volver: '/panel/agenda' }) %>
+<div class="grid-2" style="align-items:start">
+  <div class="stack-lg">
+    <form method="post" action="/panel/agenda/bloqueos" class="panel"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="horario"><h3>Bloquear un horario</h3>
+      <div class="grid-2"><div class="field"><label>Fecha<input type="date" name="fecha" min="<%= hoy %>" required></label></div><div class="field"><label>Motivo<input name="nota" maxlength="120"></label></div><div class="field"><label>Desde<input type="time" name="inicio" required></label></div><div class="field"><label>Hasta<input type="time" name="fin" required></label></div></div>
+      <button class="btn btn--primary btn--sm" type="submit">Bloquear</button></form>
+    <form method="post" action="/panel/agenda/bloqueos" class="panel"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="dia"><h3>Cerrar un día</h3>
+      <div class="grid-2"><div class="field"><label>Fecha<input type="date" name="fecha" min="<%= hoy %>" required></label></div><div class="field"><label>Motivo<input name="nota" maxlength="120"></label></div></div>
+      <button class="btn btn--primary btn--sm" type="submit">Cerrar día</button></form>
+    <form method="post" action="/panel/agenda/bloqueos" class="panel"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="vacaciones"><h3>Vacaciones</h3>
+      <div class="grid-2"><div class="field"><label>Desde<input type="date" name="desde" min="<%= hoy %>" required></label></div><div class="field"><label>Hasta<input type="date" name="hasta" min="<%= hoy %>" required></label></div></div>
+      <div class="field"><label>Motivo<input name="nota" maxlength="120"></label></div>
+      <button class="btn btn--primary btn--sm" type="submit">Guardar vacaciones</button></form>
+    <form method="post" action="/panel/agenda/bloqueos" class="panel"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="especial"><h3>Horario especial de un día</h3>
+      <div class="grid-2"><div class="field"><label>Fecha<input type="date" name="fecha" min="<%= hoy %>" required></label></div><div class="field"><label>Nota<input name="nota" maxlength="120"></label></div><div class="field"><label>Desde<input type="time" name="inicio" required></label></div><div class="field"><label>Hasta<input type="time" name="fin" required></label></div></div>
+      <button class="btn btn--primary btn--sm" type="submit">Guardar</button></form>
+    <form method="post" action="/panel/agenda/bloqueos" class="panel"><%- include('../partials/csrf') %><input type="hidden" name="tipo" value="descanso"><h3>Descanso fijo (todas las semanas)</h3>
+      <div class="grid-2"><div class="field"><label>Día<select name="dia"><% [1,2,3,4,5,6,0].forEach(d => { %><option value="<%= d %>"><%= DIAS[d] %></option><% }) %></select></label></div><div></div><div class="field"><label>Desde<input type="time" name="inicio" value="13:00" required></label></div><div class="field"><label>Hasta<input type="time" name="fin" value="14:00" required></label></div></div>
+      <button class="btn btn--primary btn--sm" type="submit">Agregar descanso</button></form>
+  </div>
+  <section class="panel"><h2>Bloqueos activos</h2>
+    <h3 class="small">Horarios bloqueados</h3>
+    <ul class="list"><% (agenda.bloqueos || []).forEach((b, i) => { %><li class="row row--between"><span><%= fFechaHora(b.inicio) %> a <%= fHora(b.fin) %><br><span class="small muted"><%= b.motivo %></span></span><%- borrar('bloqueos', i) %></li><% }) %><% if (!(agenda.bloqueos || []).length) { %><li class="muted small">Ninguno</li><% } %></ul>
+    <h3 class="small">Días cerrados y horarios especiales</h3>
+    <ul class="list"><% (agenda.excepciones || []).forEach((x, i) => { %><li class="row row--between"><span><%= fFechaTexto(x.fecha) %> · <%= x.tipo === 'cerrado' ? 'Cerrado' : x.rangos.map(r => r.inicio + '–' + r.fin).join(', ') %><br><span class="small muted"><%= x.nota %></span></span><%- borrar('excepciones', i) %></li><% }) %><% if (!(agenda.excepciones || []).length) { %><li class="muted small">Ninguno</li><% } %></ul>
+    <h3 class="small">Vacaciones</h3>
+    <ul class="list"><% (agenda.vacaciones || []).forEach((v, i) => { %><li class="row row--between"><span><%= fFechaTexto(v.desde) %> al <%= fFechaTexto(v.hasta) %><br><span class="small muted"><%= v.motivo %></span></span><%- borrar('vacaciones', i) %></li><% }) %><% if (!(agenda.vacaciones || []).length) { %><li class="muted small">Ninguna</li><% } %></ul>
+    <h3 class="small">Descansos fijos</h3>
+    <ul class="list"><% (agenda.descansos || []).forEach((d, i) => { %><li class="row row--between"><span style="text-transform:capitalize"><%= DIAS[d.dia] %> · <%= d.inicio %>–<%= d.fin %></span><%- borrar('descansos', i) %></li><% }) %><% if (!(agenda.descansos || []).length) { %><li class="muted small">Ninguno</li><% } %></ul>
+  </section>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<% const esVideo = tipo === 'video'; const textos = { foto: 'Subí fotos de tu trabajo y tu espacio. Podés elegir varias.', espacio: 'Fotos de tu consultorio o espacio.', video: 'Un video corto (hasta ' + limites.maxVideoMB + ' MB, MP4 recomendado).', perfil: 'Una foto tuya, de frente y con buena luz.', portada: 'Una imagen horizontal que represente tu práctica.' }; %>
+<div class="auth" style="max-width:560px">
+  <%- include('../partials/encabezado', { t: titulo, sub: textos[tipo], volver: '/panel/perfil/multimedia' }) %>
+  <form method="post" action="/panel/perfil/multimedia" enctype="multipart/form-data" class="panel stack">
+    <%- include('../partials/csrf') %>
+    <div class="field"><label for="su-t">Tipo</label><select id="su-t" name="tipo"><% [['foto','Foto de la galería'],['espacio','Foto del consultorio'],['perfil','Foto de perfil'],['portada','Portada'],['video','Video']].forEach(([k, t]) => { %><option value="<%= k %>"<%= tipo === k ? ' selected' : '' %>><%= t %></option><% }) %></select></div>
+    <img id="prev-su" class="svc-photo" alt="" hidden style="width:100%;object-fit:cover">
+    <div class="field"><label for="su-a">Archivo</label><input id="su-a" type="file" name="archivo" required accept="<%= esVideo ? 'video/mp4,video/webm,video/quicktime' : 'image/jpeg,image/png,image/webp' %>"<%= ['foto','espacio'].includes(tipo) ? ' multiple' : '' %> data-preview="#prev-su"><p class="field__hint"><%= esVideo ? 'MP4, WEBM o MOV.' : 'JPG, PNG o WEBP, hasta ' + limites.maxImagenMB + ' MB cada una.' %></p></div>
+    <div class="field"><label for="su-e">Epígrafe <span class="muted">(opcional)</span></label><input id="su-e" name="epigrafe" maxlength="200"></div>
+    <button class="btn btn--primary" type="submit">Subir</button>
+  </form>
+</div>
+<%- include('../partials/pie') %>

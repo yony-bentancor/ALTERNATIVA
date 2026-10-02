@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<%
+  const H0 = 7, H1 = 22, PX = 48;
+  const nav = { dia: 1, semana: 7, mes: 0 };
+  const prevFecha = vistaA === 'mes' ? (() => { const y = +fecha.slice(0, 4), m = +fecha.slice(5, 7); return m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, '0')}-01`; })() : Fx.sumarDias(fecha, -nav[vistaA]);
+  const sigFecha = vistaA === 'mes' ? (() => { const y = +fecha.slice(0, 4), m = +fecha.slice(5, 7); return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`; })() : Fx.sumarDias(fecha, nav[vistaA]);
+  const titulo2 = vistaA === 'dia' ? fFechaTexto(fecha) : vistaA === 'semana' ? `Semana del ${fFechaTexto(desde).split(' ').slice(1).join(' ')}` : `${MESES[+fecha.slice(5, 7) - 1]} ${fecha.slice(0, 4)}`;
+  const clase = (r) => r.estado === 'pagada' ? 'week__event--paid' : r.estado === 'pendiente' ? 'week__event--pending' : '';
+%>
+<%- include('../partials/encabezado', { t: 'Agenda', sub: titulo2, acciones: `<a class="btn btn--ghost btn--sm" href="/panel/agenda/horarios">Horarios</a><a class="btn btn--ghost btn--sm" href="/panel/agenda/bloqueos">Bloquear</a><a class="btn btn--ghost btn--sm" href="/panel/agenda/disponibilidad">Disponibilidad</a>` }) %>
+<div class="row row--between" style="margin-bottom:12px">
+  <nav class="filters" style="padding:0"><% [['dia','Día'],['semana','Semana'],['mes','Mes']].forEach(([k, t]) => { %><a class="filter-chip<%= vistaA === k ? ' is-on' : '' %>" href="?vista=<%= k %>&fecha=<%= fecha %>"><%= t %></a><% }) %></nav>
+  <div class="row"><a class="btn btn--ghost btn--sm" href="?vista=<%= vistaA %>&fecha=<%= prevFecha %>" aria-label="Anterior">‹</a><a class="btn btn--ghost btn--sm" href="?vista=<%= vistaA %>&fecha=<%= hoy %>">Hoy</a><a class="btn btn--ghost btn--sm" href="?vista=<%= vistaA %>&fecha=<%= sigFecha %>" aria-label="Siguiente">›</a></div>
+</div>
+
+<% if (vistaA === 'dia') { const delDia = porDia[fecha] || []; const rg = rangosDe(agenda, fecha); %>
+<section class="panel">
+  <p class="small muted"><%= rg.rangos.length ? 'Atendés ' + rg.rangos.map(x => Fx.aHora(x.inicio) + ' a ' + Fx.aHora(x.fin)).join(' y ') : { vacaciones: 'De vacaciones', cerrado: 'Día cerrado', libre: 'No atendés este día' }[rg.motivo] || '' %></p>
+  <% if (!delDia.length) { %><p class="muted">No hay reservas este día.</p><% } %>
+  <ul class="day-agenda"><% delDia.forEach(r => { %><li><time><%= fHora(r.inicio) %><br><span class="small muted"><%= fHora(r.fin) %></span></time><a class="list-row" href="/panel/reservas/<%= r.id %>"><div class="list-row__main"><p class="list-row__title"><%= r.foto.usuario %></p><p class="list-row__sub"><%= r.foto.servicio %> · <%= MODALIDADES[r.modalidad].texto %><% if (r.notasUsuario) { %> · “<%= recortar(r.notasUsuario, 60) %>”<% } %></p></div><%- include('../partials/estado', { estado: r.estado }) %></a></li><% }) %></ul>
+</section>
+<% } else if (vistaA === 'semana') { %>
+<div class="week">
+  <div class="week__col week__hours"><div class="week__head"></div><% for (let h = H0; h < H1; h++) { %><div><%= String(h).padStart(2, '0') %>:00</div><% } %></div>
+  <% for (let i = 0; i < 7; i++) { const dia = Fx.sumarDias(desde, i); const rg = rangosDe(agenda, dia); %>
+  <div class="week__col">
+    <a class="week__head<%= dia === hoy ? ' is-today' : '' %>" href="?vista=dia&fecha=<%= dia %>" style="display:block;text-decoration:none;color:inherit"><%= DIAS_CORTOS[Fx.diaSemana(dia)] %> <%= +dia.slice(8) %></a>
+    <div class="week__body" style="height:<%= (H1 - H0) * PX %>px">
+      <% for (let h = H0; h < H1; h++) { const abierto = rg.rangos.some(x => x.inicio <= h * 60 && x.fin > h * 60); %><div class="week__slot<%= abierto ? ' is-open' : '' %>"></div><% } %>
+      <% (agenda.bloqueos || []).filter(b => Fx.partes(b.inicio).fecha === dia).forEach(b => { const p = Fx.partes(b.inicio), q = Fx.partes(b.fin); const top = (p.minutosDelDia - H0 * 60) / 60 * PX; %><div class="week__event week__event--block" style="top:<%= top %>px;height:<%= Math.max(16, (q.minutosDelDia - p.minutosDelDia) / 60 * PX) %>px">Bloqueado<%= b.motivo ? ': ' + b.motivo : '' %></div><% }) %>
+      <% (porDia[dia] || []).forEach(r => { const p = Fx.partes(r.inicio); const top = (p.minutosDelDia - H0 * 60) / 60 * PX; const alto = Math.max(22, r.foto.duracion / 60 * PX - 2); %><a class="week__event <%= clase(r) %>" style="top:<%= top %>px;height:<%= alto %>px" href="/panel/reservas/<%= r.id %>" title="<%= r.foto.usuario %> · <%= r.foto.servicio %>"><b><%= fHora(r.inicio) %></b> <%= r.foto.usuario.split(' ')[0] %><br><%= r.foto.servicio %></a><% }) %>
+    </div>
+  </div>
+  <% } %>
+</div>
+<p class="small muted" style="margin-top:8px"><span class="week__event" style="position:static;display:inline-block">Confirmada</span> <span class="week__event week__event--paid" style="position:static;display:inline-block">Por confirmar</span> <span class="week__event week__event--pending" style="position:static;display:inline-block">Esperando pago</span> · Las franjas celestes son tus horarios de atención.</p>
+<% } else { %>
+<div class="month">
+  <% ['lun','mar','mié','jue','vie','sáb','dom'].forEach(d => { %><span class="month__dow"><%= d %></span><% }) %>
+  <% grilla.flat().forEach(dia => { const n = (porDia[dia] || []).length; const rg = rangosDe(agenda, dia); %>
+  <a class="month__day<%= dia.slice(5, 7) !== fecha.slice(5, 7) ? ' is-other' : '' %><%= dia === hoy ? ' is-today' : '' %><%= !rg.rangos.length ? ' is-off' : '' %>" href="?vista=dia&fecha=<%= dia %>">
+    <span class="month__num"><%= +dia.slice(8) %></span>
+    <% if (n) { %><span class="month__count"><%= n %> <%= n === 1 ? 'reserva' : 'reservas' %></span><% } %>
+    <% if (rg.motivo === 'vacaciones') { %><span class="small muted">Vacaciones</span><% } else if (rg.motivo === 'cerrado') { %><span class="small muted">Cerrado</span><% } %>
+  </a>
+  <% }) %>
+</div>
+<% } %>
+<%- include('../partials/pie') %>

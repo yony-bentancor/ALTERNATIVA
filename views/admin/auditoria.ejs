@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Auditoría', sub: 'Registro de solo inserción: quién hizo qué, cuándo, y el valor anterior y nuevo.' }) %>
+<form class="toolbar">
+  <div class="field"><input name="accion" value="<%= query.accion || '' %>" placeholder="Acción (ej. reserva.)" aria-label="Acción"></div>
+  <div class="field"><select name="entidad" aria-label="Entidad"><option value="">Todas las entidades</option><% entidades.forEach(e => { %><option<%= query.entidad === e ? ' selected' : '' %>><%= e %></option><% }) %></select></div>
+  <div class="field"><select name="severidad" aria-label="Severidad"><option value="">Toda severidad</option><% ['info', 'aviso', 'seguridad'].forEach(s => { %><option<%= query.severidad === s ? ' selected' : '' %>><%= s %></option><% }) %></select></div>
+  <% if (query.objeto) { %><input type="hidden" name="objeto" value="<%= query.objeto %>"><% } %>
+  <button class="btn btn--ghost btn--sm" type="submit">Filtrar</button>
+</form>
+<% if (!p.items.length) { %><%- include('../partials/vacio', { t: 'Sin registros', ic: 'lock' }) %><% } else { %>
+<div class="table-wrap"><table class="table">
+  <thead><tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Objeto</th><th>Detalle</th></tr></thead>
+  <tbody><% p.items.forEach(a => { %><tr>
+    <td class="small"><%= fFechaHora(a.creado) %></td>
+    <td class="small"><%= a.actor %><br><span class="muted"><%= a.rol %><%= a.ip ? ' · ' + a.ip : '' %></span></td>
+    <td><b><%= a.accion %></b><br><%- include('../partials/pill', { texto: a.severidad || 'info', tono: { seguridad: 'danger', aviso: 'warn' }[a.severidad] }) %></td>
+    <td class="small"><%= a.entidad %><% if (a.entidadId) { %><br><a href="?objeto=<%= a.entidadId %>"><%= a.entidadId %></a><% } %></td>
+    <td class="small"><%= a.resumen || '' %><% if (a.antes || a.despues) { %><details><summary>Cambios</summary><% if (a.antes) { %><code style="display:block;white-space:pre-wrap">antes: <%= JSON.stringify(a.antes) %></code><% } %><% if (a.despues) { %><code style="display:block;white-space:pre-wrap">después: <%= JSON.stringify(a.despues) %></code><% } %></details><% } %></td>
+  </tr><% }) %></tbody>
+</table></div>
+<% } %>
+<%- include('../partials/paginacion', { p }) %>
+<%- include('../partials/pie') %>

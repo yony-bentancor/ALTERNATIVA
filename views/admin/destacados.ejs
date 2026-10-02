@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<% const TIP = { inicio: 'Inicio', categoria: 'Categoría', zona: 'Zona', busqueda: 'Búsqueda', recomendacion: 'Recomendados' }; const EST = { programado: 'Programado', activo: 'Activo', pausado: 'Pausado', terminado: 'Terminado', cancelado: 'Cancelado' }; %>
+<%- include('../partials/encabezado', { t: 'Destacados', sub: 'Exposición paga, siempre marcada como "Patrocinado". Nunca altera reputación ni orden orgánico.' }) %>
+<div class="layout-aside">
+  <div class="stack">
+    <% if (!lista.length) { %><%- include('../partials/vacio', { t: 'No hay destacados', ic: 'megaphone' }) %><% } %>
+    <% lista.forEach(d => { const e = espMap.get(d.especialistaId); const ctr = d.impresiones ? Math.round(d.clics / d.impresiones * 1000) / 10 : 0; const solicitud = d.estado === 'pausado' && d.estadoPago === 'pendiente'; %>
+    <article class="panel<%= solicitud ? ' panel--warn' : '' %>">
+      <div class="row row--between"><span><a href="/admin/especialistas/<%= d.especialistaId %>"><b><%= e ? e.nombre : '—' %></b></a> · <%= TIP[d.tipo] %><%= d.categoriaId ? ': ' + (catMap.get(d.categoriaId)?.nombre || '') : '' %><%= d.departamento ? ': ' + d.departamento : '' %><%= d.servicioId ? ' · ' + (servMap.get(d.servicioId)?.titulo || '') : '' %><% if (solicitud) { %> <%- include('../partials/pill', { texto: 'Solicitud del especialista', tono: 'warn' }) %><% } %></span>
+        <%- include('../partials/pill', { texto: EST[d.estado], tono: { activo: 'ok', programado: 'info', cancelado: 'danger' }[d.estado] }) %></div>
+      <p class="small muted"><%= fCorta(d.desde) %> → <%= fCorta(new Date(new Date(d.hasta) - 1)) %> · <%= d.impresiones || 0 %> apariciones · <%= d.clics || 0 %> clics · CTR <%= fPct(ctr) %><%= d.notas ? ' · ' + d.notas : '' %></p>
+      <form method="post" action="/admin/destacados/<%= d.id %>" class="row"><%- include('../partials/csrf') %>
+        <select name="estado" aria-label="Estado"><% Object.entries(EST).forEach(([k, t]) => { %><option value="<%= k %>"<%= d.estado === k ? ' selected' : '' %>><%= t %></option><% }) %></select>
+        <select name="estadoPago" aria-label="Pago"><% [['pendiente', 'Pago pendiente'], ['pagado', 'Pagado'], ['bonificado', 'Bonificado']].forEach(([k, t]) => { %><option value="<%= k %>"<%= d.estadoPago === k ? ' selected' : '' %>><%= t %></option><% }) %></select>
+        <input name="precio" type="number" min="0" value="<%= d.precio || 0 %>" style="width:110px" aria-label="Precio">
+        <button class="btn btn--ghost btn--sm" type="submit">Guardar</button>
+      </form>
+    </article>
+    <% }) %>
+  </div>
+  <aside>
+    <form class="panel stack" method="post" action="/admin/destacados"><%- include('../partials/csrf') %>
+      <h2>Nuevo destacado</h2>
+      <div class="field"><label>Especialista</label><select name="especialistaId" required><option value="">Elegí</option><% especialistas.forEach(e => { %><option value="<%= e.id %>"><%= e.nombre %></option><% }) %></select></div>
+      <div class="field"><label>Dónde</label><select name="tipo"><% Object.entries(TIP).forEach(([k, t]) => { %><option value="<%= k %>"><%= t %></option><% }) %></select></div>
+      <div class="field"><label>Categoría</label><select name="categoriaId"><option value="">—</option><% categorias.forEach(c => { %><option value="<%= c.id %>"><%= c.nombre %></option><% }) %></select></div>
+      <div class="field"><label>Departamento</label><select name="departamento"><option value="">El del especialista</option><% DEPARTAMENTOS.forEach(x => { %><option><%= x %></option><% }) %></select></div>
+      <div class="field"><label>Palabras de búsqueda</label><input name="palabras" placeholder="masaje, contractura"></div>
+      <div class="grid-2"><div class="field"><label>Desde</label><input name="desde" type="date" value="<%= hoy %>" required></div><div class="field"><label>Hasta</label><input name="hasta" type="date" required value="<%= Fx.sumarDias(hoy, 13) %>"></div></div>
+      <div class="grid-2"><div class="field"><label>Precio ($)</label><input name="precio" type="number" min="0" value="0"></div><div class="field"><label>Pago</label><select name="estadoPago"><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option><option value="bonificado">Bonificado</option></select></div></div>
+      <div class="field"><label>Notas</label><input name="notas" maxlength="400"></div>
+      <button class="btn btn--primary btn--sm" type="submit">Crear</button>
+    </form>
+  </aside>
+</div>
+<%- include('../partials/pie') %>

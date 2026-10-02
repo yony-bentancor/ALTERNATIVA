@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="auth" style="max-width:640px">
+  <h1>Creá tu ficha de especialista</h1>
+  <p class="muted">Empezamos con lo básico. Después sumás fotos, servicios, horarios y tu cuenta de cobro.</p>
+  <% if (errores.length) { %><div class="flash flash--error"><%- icono('alert', { tam: 18 }) %><span><%= errores.join(' ') %></span></div><% } %>
+  <form method="post" action="/panel/comenzar" class="panel stack">
+    <%- include('../partials/csrf') %>
+    <div class="field"><label for="co-n">Nombre profesional</label><input id="co-n" name="nombre" required maxlength="120" value="<%= datos.nombre || '' %>"><p class="field__hint">Como querés que te encuentren: tu nombre o el de tu espacio.</p></div>
+    <div class="field"><label for="co-t">Frase de presentación <span class="muted">(opcional)</span></label><input id="co-t" name="titular" maxlength="160" value="<%= datos.titular || '' %>" placeholder="Ej.: Masoterapeuta especializada en contracturas"></div>
+    <fieldset class="field"><legend>¿Qué ofrecés?</legend><div class="checkgrid"><% categorias.forEach(c => { %><label class="check check--pill"><input type="checkbox" name="categorias" value="<%= c.id %>"<%= [].concat(datos.categorias || []).includes(c.id) ? ' checked' : '' %>><span><%= c.nombre %></span></label><% }) %></div></fieldset>
+    <fieldset class="field"><legend>¿Cómo atendés?</legend><div class="checkgrid"><% Object.entries(MODALIDADES).forEach(([k, m]) => { %><label class="check check--pill"><input type="checkbox" name="modalidades" value="<%= k %>"<%= [].concat(datos.modalidades || []).includes(k) ? ' checked' : '' %>><span><%= m.texto %></span></label><% }) %></div></fieldset>
+    <div class="grid-2">
+      <div class="field"><label for="co-d">Departamento</label><select id="co-d" name="departamento" required><option value="">Elegí…</option><% DEPARTAMENTOS.forEach(d => { %><option<%= datos.departamento === d ? ' selected' : '' %>><%= d %></option><% }) %></select></div>
+      <div class="field"><label for="co-c">Ciudad</label><input id="co-c" name="ciudad" maxlength="80" value="<%= datos.ciudad || '' %>"></div>
+    </div>
+    <button class="btn btn--lav btn--lg" type="submit">Crear mi ficha</button>
+  </form>
+</div>
+<%- include('../partials/pie') %>

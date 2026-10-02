@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: 'Pago ' + (pago.idPasarela || pago.id), sub: pago.proveedor + ' · ' + (MODELOS_COBRO[pago.modeloCobro]?.corto || ''), volver: '/admin/pagos' }) %>
+<div class="layout-aside">
+  <div class="stack-lg">
+    <section class="panel"><dl class="dl">
+      <div><dt>Estado</dt><dd><%- include('../partials/pill', { texto: ESTADOS_PAGO[pago.estado] || pago.estado, tono: { aprobado: 'ok', rechazado: 'danger', en_disputa: 'danger' }[pago.estado] }) %><%= pago.detalle ? ' · ' + pago.detalle : '' %></dd></div>
+      <div><dt>Reserva</dt><dd><% if (r) { %><a href="/admin/reservas/<%= r.id %>"><%= r.codigo %></a> · <%= r.foto.servicio %><% } %></dd></div>
+      <div><dt>Cliente</dt><dd><%= u ? u.nombre + ' · ' + u.email : '—' %></dd></div>
+      <div><dt>Especialista</dt><dd><%= e ? e.nombre : '—' %></dd></div>
+      <div><dt>Monto</dt><dd><b><%= pesos(pago.monto) %></b> <%= pago.moneda || 'UYU' %> · medio <%= pago.medio || '—' %></dd></div>
+      <div><dt>Reparto</dt><dd>Comisión <%= pesos(pago.comision) %> · especialista <%= pesos(pago.montoEspecialista) %> · pasarela <%= pago.comisionPasarela !== undefined ? pesos(pago.comisionPasarela) : 'estimada ' + pesos(pago.comisionPasarelaEstimada || 0) %></dd></div>
+      <div><dt>Reembolsado</dt><dd><%= pesos(pago.reembolsado || 0) %></dd></div>
+      <div><dt>Liquidación</dt><dd><%= (pago.liquidacion || {}).estado || 'no aplica' %></dd></div>
+      <% if (pago.contracargo) { %><div><dt>Contracargo</dt><dd><%= pago.contracargo.estado %> · <%= pesos(pago.contracargo.monto || 0) %> · <%= fFecha(pago.contracargo.fecha) %></dd></div><% } %>
+      <div><dt>Creado / sincronizado</dt><dd><%= fFechaHora(pago.creado) %><%= pago.sincronizado ? ' · ' + fFechaHora(pago.sincronizado) : '' %></dd></div>
+    </dl></section>
+    <% if (reembolsos.length) { %><section class="panel"><h2>Reembolsos</h2><ul class="list"><% reembolsos.forEach(rb => { %><li><%= pesos(rb.monto) %> · <%= rb.estado %> · <%= rb.motivo %> <span class="small muted"><%= fFechaHora(rb.creado) %></span></li><% }) %></ul></section><% } %>
+    <section class="panel"><h2>Eventos</h2><ul class="timeline"><% (pago.eventos || []).slice().reverse().forEach(ev => { %><li><b><%= ev.tipo %></b> · <span class="muted"><%= fFechaHora(ev.fecha) %></span><br><code class="small"><%= JSON.stringify(ev.datos || {}) %></code></li><% }) %></ul><% if (!(pago.eventos || []).length) { %><p class="muted">Sin eventos.</p><% } %></section>
+  </div>
+  <aside><form class="panel stack" method="post" action="/admin/pagos/<%= pago.id %>/sincronizar"><%- include('../partials/csrf') %><h3>Sincronizar</h3><p class="small muted">Consulta el estado actual en la pasarela y lo aplica (por ejemplo si no llegó el webhook).</p><button class="btn btn--ghost btn--sm" type="submit"><%- icono('repeat', { tam: 16 }) %> Consultar pasarela</button></form></aside>
+</div>
+<%- include('../partials/pie') %>

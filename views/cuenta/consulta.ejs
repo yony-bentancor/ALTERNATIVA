@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/encabezado', { t: '#' + t.numero + ' · ' + t.asunto, sub: { abierta: 'Abierta: la estamos revisando', esperando_usuario: 'Te respondimos: esperamos tu mensaje', resuelta: 'Resuelta', cerrada: 'Cerrada' }[t.estado], volver: base }) %>
+<div class="thread panel" style="max-height:none">
+  <% t.mensajes.forEach(m => { const mio = m.autorId === usuario.id; %>
+  <div class="bubble <%= mio ? 'bubble--me' : 'bubble--them' %>"><% if (!mio) { %><b><%= m.rol === 'sistema' ? 'Sistema' : 'Equipo de Alternativa' %>:</b> <% } %><%= m.texto %><span class="bubble__time"><%= fFechaHora(m.fecha) %></span></div>
+  <% }) %>
+</div>
+<% if (t.estado !== 'cerrada') { %>
+<form class="composer" method="post" action="<%= base %>/<%= t.id %>"><%- include('../partials/csrf') %><textarea name="mensaje" rows="2" required placeholder="Escribí tu respuesta…" aria-label="Respuesta"></textarea><button class="btn btn--primary" type="submit">Enviar</button></form>
+<% } %>
+<%- include('../partials/pie') %>

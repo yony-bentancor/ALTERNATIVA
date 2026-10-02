@@ -1,0 +1,35 @@
+<%- include('../partials/head') %>
+<% const fotos = lista.filter(m => ['foto','espacio','servicio'].includes(m.tipo)).sort((a, b) => (a.orden || 0) - (b.orden || 0)); %>
+<%- include('../partials/encabezado', { t: 'Fotos y video', sub: fotos.length + ' de ' + limites.maxFotos + ' fotos', acciones: `<a class="btn btn--primary btn--sm" href="/panel/perfil/multimedia/subir?tipo=foto">Subir fotos</a><a class="btn btn--ghost btn--sm" href="/panel/perfil/multimedia/subir?tipo=video">Subir video</a>` }) %>
+<div class="grid-3">
+  <section class="panel"><h3>Foto de perfil</h3><% if (e.avatar) { %><img class="avatar avatar--xl" src="<%= e.avatar %>" alt=""><% } else { %><p class="muted">Sin foto.</p><% } %><a class="btn btn--ghost btn--sm" style="margin-top:8px" href="/panel/perfil/multimedia/subir?tipo=perfil">Cambiar</a></section>
+  <section class="panel"><h3>Portada</h3><div class="cover-preview" style="background-image:url('<%= e.portada || '' %>')"></div><a class="btn btn--ghost btn--sm" href="/panel/perfil/multimedia/subir?tipo=portada">Cambiar</a></section>
+  <section class="panel"><h3>Video de presentación</h3><% if (e.video) { %><div class="video-frame"><video src="<%= e.video %>" controls preload="metadata"<%- e.poster ? ` poster="${e.poster}"` : '' %>></video></div><% } else { %><p class="muted small">Hasta <%= limites.maxVideoMB %> MB. Un video corto mostrando tu espacio genera confianza.</p><% } %><a class="btn btn--ghost btn--sm" style="margin-top:8px" href="/panel/perfil/multimedia/subir?tipo=video"><%= e.video ? 'Reemplazar' : 'Subir video' %></a></section>
+</div>
+<section class="section"><h2>Galería</h2>
+  <% if (!fotos.length) { %><%- include('../partials/vacio', { t: 'Todavía no subiste fotos', texto: 'Mostrá tu espacio, tus materiales y tu forma de trabajar.', accion: 'Subir fotos', href: '/panel/perfil/multimedia/subir?tipo=foto', ic: 'image' }) %><% } %>
+  <div class="media-grid">
+    <% fotos.forEach((m, i) => { %>
+    <div class="media-item">
+      <a href="<%= m.url %>" target="_blank"><img src="<%= m.url %>" alt="<%= m.epigrafe %>" loading="lazy"></a>
+      <div class="media-item__bar"><span class="pill<%= m.estado !== 'aprobado' ? ' pill--warn' : '' %>"><%= m.estado === 'aprobado' ? { foto: 'Foto', espacio: 'Consultorio', servicio: 'Servicio' }[m.tipo] : m.estado %></span>
+        <span class="row-actions">
+          <form method="post" action="/panel/perfil/multimedia/<%= m.id %>"><%- include('../partials/csrf') %><button class="btn btn--text btn--sm" name="accion" value="subir" title="Mover antes"<%= i === 0 ? ' disabled' : '' %>>↑</button><button class="btn btn--text btn--sm" name="accion" value="bajar" title="Mover después"<%= i === fotos.length - 1 ? ' disabled' : '' %>>↓</button></form>
+        </span>
+      </div>
+      <details class="inline-edit" style="padding:0 8px 8px"><summary class="small muted">Editar</summary>
+        <form method="post" action="/panel/perfil/multimedia/<%= m.id %>" class="stack small" style="margin-top:6px"><%- include('../partials/csrf') %>
+          <input name="epigrafe" value="<%= m.epigrafe || '' %>" placeholder="Epígrafe" maxlength="200">
+          <% if (m.tipo !== 'servicio') { %><select name="tipo"><option value="foto"<%= m.tipo === 'foto' ? ' selected' : '' %>>Foto</option><option value="espacio"<%= m.tipo === 'espacio' ? ' selected' : '' %>>Consultorio</option></select><% } %>
+          <button class="btn btn--sm" type="submit">Guardar</button>
+        </form>
+        <div class="row-actions" style="margin-top:6px">
+          <% if (m.tipo !== 'servicio') { %><form method="post" action="/panel/perfil/multimedia/<%= m.id %>"><%- include('../partials/csrf') %><button class="btn btn--text btn--sm" name="accion" value="portada">Usar de portada</button></form><% } %>
+          <form method="post" action="/panel/perfil/multimedia/<%= m.id %>" data-confirm="¿Eliminar esta foto?"><%- include('../partials/csrf') %><button class="btn btn--text btn--sm" name="accion" value="eliminar" style="color:var(--danger)">Eliminar</button></form>
+        </div>
+      </details>
+    </div>
+    <% }) %>
+  </div>
+</section>
+<%- include('../partials/pie') %>
