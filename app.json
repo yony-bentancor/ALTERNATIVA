@@ -1,0 +1,33 @@
+{
+  "name": "Alternativa",
+  "description": "Marketplace de especialistas en terapias, bienestar y disciplinas alternativas (Uruguay).",
+  "repository": "https://github.com/yony-bentancor/ALTERNATIVA",
+  "keywords": ["node", "express", "mongodb", "marketplace"],
+  "stack": "heroku-24",
+  "buildpacks": [{ "url": "heroku/nodejs" }],
+  "formation": { "web": { "quantity": 1, "size": "basic" } },
+  "addons": ["scheduler"],
+  "scripts": { "postdeploy": "node scripts/seed.js" },
+  "env": {
+    "NODE_ENV": { "value": "production" },
+    "APP_ENV": { "description": "staging o production", "value": "staging" },
+    "APP_URL": { "description": "URL pública sin barra final, p. ej. https://alternativa.uy", "required": true },
+    "MONGODB_URI": { "description": "Cadena de conexión de MongoDB Atlas", "required": true },
+    "SESSION_SECRET": { "description": "Secreto de sesiones", "generator": "secret" },
+    "TZ_NAME": { "value": "America/Montevideo" },
+    "PAYMENT_PROVIDER": { "description": "mercadopago (producción) o simulated (staging)", "value": "mercadopago" },
+    "MP_ACCESS_TOKEN": { "description": "Access token de la aplicación de Mercado Pago", "required": false },
+    "MP_PUBLIC_KEY": { "required": false },
+    "MP_WEBHOOK_SECRET": { "description": "Clave secreta de webhooks de Mercado Pago", "required": false },
+    "MP_CLIENT_ID": { "description": "Client ID de la aplicación (OAuth para split)", "required": false },
+    "MP_CLIENT_SECRET": { "required": false },
+    "STORAGE_DRIVER": { "value": "cloudinary" },
+    "CLOUDINARY_CLOUD_NAME": { "required": false },
+    "CLOUDINARY_API_KEY": { "required": false },
+    "CLOUDINARY_API_SECRET": { "required": false },
+    "EMAIL_PROVIDER": { "value": "resend" },
+    "EMAIL_FROM": { "value": "Alternativa <hola@alternativa.uy>" },
+    "RESEND_API_KEY": { "required": false },
+    "RUN_JOBS_IN_PROCESS": { "description": "false si se usa Heroku Scheduler", "value": "false" }
+  }
+}
