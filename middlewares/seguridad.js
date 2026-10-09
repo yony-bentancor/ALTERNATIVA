@@ -13,12 +13,12 @@ function cabeceras(req, res, next) {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
     "Content-Security-Policy": [
       "default-src 'self'",
-      "script-src 'self' https://estudioqr-7fd22333fa47.herokuapp.com", // contador de visitas de Estudio QR
+      "script-src 'self' https://estudioqr.com.uy", // contador de visitas de Estudio QR
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://estudioqr-7fd22333fa47.herokuapp.com",
+      "connect-src 'self' https://estudioqr.com.uy",
       // Mapas de Google embebidos
       "frame-src 'self' https://www.google.com https://maps.google.com",
       "frame-ancestors 'self'",
